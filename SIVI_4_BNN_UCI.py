@@ -62,7 +62,7 @@ semi_by_col = False
 """
 
 
-lr_min = 2e-6
+lr_min = 1e-7
 lr_factor=3
 lr_patience=5
 optim = 'Adam'
@@ -73,7 +73,7 @@ semi_by_col = False #if true: semi followed by cols else followed by rows
 ###################load data
 print("Load data...")
 
-data_type = 'BOSTON'
+data_type = 'CONCRETE'
 print('UCI DATASET: '+ data_type)
 
 if data_type == 'BOSTON':
@@ -103,7 +103,7 @@ output_dim =1
 ######################Tune parameters
 
 nepochs = 200
-droprate = None
+droprate = [0.005,0.01,0.05,0.1]
 lr = [0.001, 0.0001]
 sbatch = 32
 z_sample = 1
@@ -120,71 +120,74 @@ tau.append(1)
 ##############################################
 
 for l in lr:
-  for t in tau:
-    test_rs = []
-    for split_id in range(n_splits):
-        dat, input_dim, normalization_info= data.get(data_type, split_id) #read data
+  for dr in droprate:
+    for t in tau:
+      test_rs = []
+      for split_id in range(n_splits):
+          dat, input_dim, normalization_info= data.get(data_type, split_id) #read data
 
-        xtrain = dat['train']['x'].cuda()
-        ytrain = dat['train']['y'].cuda()
+          xtrain = dat['train']['x'].cuda()
+          ytrain = dat['train']['y'].cuda()
 
-        xvalid = dat['valid']['x'].cuda()
-        yvalid = dat['valid']['y'].cuda()
+          xvalid = dat['valid']['x'].cuda()
+          yvalid = dat['valid']['y'].cuda()
 
-        xtest = dat['test']['x'].cuda()
-        ytest = dat['test']['y'].cuda()
-        if split_id == 0:
-            print('TRAIN:' + str(xtrain.shape))
-            print('VALID:' + str(xvalid.shape))
-            print('TEST:' + str(xtest.shape))
+          xtest = dat['test']['x'].cuda()
+          ytest = dat['test']['y'].cuda()
+          if split_id == 0:
+              print('TRAIN:' + str(xtrain.shape))
+              print('VALID:' + str(xvalid.shape))
+              print('TEST:' + str(xtest.shape))
 
-        print('\n'+ '*'*200)
-        #####################
-        torch.set_default_tensor_type('torch.cuda.FloatTensor')
+          print('\n'+ '*'*200)
+          #####################
+          torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
-        #init model and apply approach
-        model = Net(input_dim, [hid_layer,hid_layer], output_dim, prior_gmm=prior_gmm,SIVI_by_col=semi_by_col, SIVI_layer_size=SIVI_layer_size, SIVI_input_dim=SIVI_input_dim, semi_unit= semi_unit, droprate= droprate, local_rep= local_rep,tau= t).cuda()  
-        Appr = appr(model, optim= optim, nosample= nosample, test_sample= test_sample,nepochs= nepochs, sbatch= sbatch, lr=l, lr_min=lr_min, lr_factor=lr_factor, lr_patience=lr_patience)
-        if split_id == 0:
-            # model info
-            print_model_report(model)
-            print_optimizer_config(Appr.optimizer)
+          #init model and apply approach
+          model = Net(input_dim, [hid_layer,hid_layer], output_dim, prior_gmm=prior_gmm,SIVI_by_col=semi_by_col, SIVI_layer_size=SIVI_layer_size, SIVI_input_dim=SIVI_input_dim, semi_unit= semi_unit, droprate= dr, local_rep= local_rep,tau= t).cuda()  
+          Appr = appr(model, optim= optim, nosample= nosample, test_sample= test_sample,nepochs= nepochs, sbatch= sbatch, lr=l, lr_min=lr_min, lr_factor=lr_factor, lr_patience=lr_patience)
+          if split_id == 0:
+              # model info
+              print_model_report(model)
+              print_optimizer_config(Appr.optimizer)
 
-            print("Parameters:")
-            cnt_param = 0
-            for name, param in model.named_parameters():
-                if param.requires_grad:
-                    cnt_param += 1
-                    print("\t"+ name)
-            print('\tTotal: '+ str(cnt_param))
-            print('*'*200)
-        print("tau= {}, lr = {}".format(t,l),end='\n')
-        print('Load split: '+ str(split_id))
-        print('Done!')
-        ##################### TRAIN
-        print('TRAINING')
+              print("Parameters:")
+              cnt_param = 0
+              for name, param in model.named_parameters():
+                  if param.requires_grad:
+                      cnt_param += 1
+                      print("\t"+ name)
+              print('\tTotal: '+ str(cnt_param))
+              print('*'*200)
+              print('Approach param: optim= {}, nosample= {}, test_sample= {}, nepochs= {}, sbatch= {}, lr= {}'.format(optim, nosample, test_sample, nepochs, sbatch, l),end='\n')
+              print('Model param: prior_gmm= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, droprate= {}, local_rep= {}, tau= {}'.format(prior_gmm, SIVI_layer_size, SIVI_input_dim, dr, local_rep, t),end='\n')
+              print("tau= {}, lr = {}, droprate = {}\n".format(t,l,dr))
+          print('Load split: '+ str(split_id))
+          print('Done!')
+          ##################### TRAIN
+          print('TRAINING')
 
-        Appr.train(xtrain,ytrain,xvalid,yvalid,xtest, ytest, normalization_info)
+          Appr.train(xtrain,ytrain,xvalid,yvalid,xtest, ytest, normalization_info)
 
-        print('*'*200)
-        ###################### TEST
-        print('TESTING')
+          print('*'*200)
+          ###################### TEST
+          print('TESTING')
 
-        test_loss, test_rmse, test_llh = Appr.eval(xtest, ytest,normalization_info)
-        print("Test: loss= {:.3f}, rmse={:.3f}, llh={:.3f}".format(test_loss,test_rmse,test_llh),end= '\n')
-        test_rs.append((test_rmse, test_llh))
-        break
+          test_loss, test_rmse, test_llh = Appr.eval(xtest, ytest,normalization_info)
+          print("Test: loss= {:.3f}, rmse={:.3f}, llh={:.3f}".format(test_loss,test_rmse,test_llh),end= '\n')
+          test_rs.append((test_rmse, test_llh))
+          break
 
-    mean_rmse, mean_llh = np.mean(test_rs,0)
-    max_rmse, max_llh = np.max(test_rs,0)
-    min_rmse, min_llh = np.min(test_rs,0)
-    print(test_rs)
-    print("*"*200)
+      mean_rmse, mean_llh = np.mean(test_rs,0)
+      max_rmse, max_llh = np.max(test_rs,0)
+      min_rmse, min_llh = np.min(test_rs,0)
+      print(test_rs)
+      print("*"*200)
 
-    f = open("result/uci/" +data_type+ ".txt", "a")
-    if t == tau[0]:
-        f.write("*Data: {} \nTune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, nosample={}, local_rep={}, prior_gmm={}, n_epochs= {}, tau={}\n rs: rmse: mean={}, max={}, min= {}; llh: mean={}, max={}, min={} \n".format(data_type,droprate,l,SIVI_layer_size, SIVI_input_dim, sbatch, nosample, str(local_rep), str(prior_gmm),nepochs,t,mean_rmse, max_rmse, min_rmse, mean_llh, max_llh, min_llh))
-    else:
-        f.write("\nTune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, nosample={}, local_rep={}, prior_gmm={}, n_epochs= {}, tau={}\n rs: rmse: mean={}, max={}, min= {}; llh: mean={}, max={}, min={} \n".format(droprate,l,SIVI_layer_size, SIVI_input_dim, sbatch, nosample, str(local_rep), str(prior_gmm),nepochs,t,mean_rmse, max_rmse, min_rmse, mean_llh, max_llh, min_llh))
+      f = open("result/uci/" +data_type+ ".txt", "a")
+      if t == tau[0]:
+          f.write("*Data: {} \nTune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, nosample={}, local_rep={}, prior_gmm={}, n_epochs= {}, tau={}\n rs: rmse: mean={}, max={}, min= {}; llh: mean={}, max={}, min={} \n".format(data_type,dr,l,SIVI_layer_size, SIVI_input_dim, sbatch, nosample, str(local_rep), str(prior_gmm),nepochs,t,mean_rmse, max_rmse, min_rmse, mean_llh, max_llh, min_llh))
+      else:
+          f.write("\nTune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, nosample={}, local_rep={}, prior_gmm={}, n_epochs= {}, tau={}\n rs: rmse: mean={}, max={}, min= {}; llh: mean={}, max={}, min={} \n".format(dr,l,SIVI_layer_size, SIVI_input_dim, sbatch, nosample, str(local_rep), str(prior_gmm),nepochs,t,mean_rmse, max_rmse, min_rmse, mean_llh, max_llh, min_llh))
 
-    f.close()
+      f.close()
