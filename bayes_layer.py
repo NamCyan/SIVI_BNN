@@ -78,7 +78,6 @@ class BayesianLinear(nn.Module):
         self.weight_rho = nn.Parameter(torch.Tensor(out_features, in_features).uniform_(rho_init, rho_init))
         self.bias_rho = nn.Parameter(torch.Tensor(out_features).uniform_(rho_init, rho_init))
         
-
         self.weight = Gaussian(self.weight_mu, self.weight_rho)
         self.bias = Gaussian(self.bias_mu, self.bias_rho)
 

@@ -13,7 +13,7 @@ from bayes_layer import SIVI_bayes_layer
 
 class Appr(object):
   
-    def __init__(self,model,optim = 'Adam', nosample=10, test_sample= 10, nepochs=100,sbatch=256,lr=0.001,lr_min=1e-6,lr_factor=3,lr_patience=5,clipgrad=100, args=None, log_name=None, split=False):
+    def __init__(self,model,optim = 'Adam', nosample=10, test_sample= 10, nepochs=100, sbatch=256, lr=0.001, lr_min=1e-6, lr_factor=3, lr_patience=5, clipgrad=100, args=None, log_name=None, split=False):
         self.model=model
         self.model_old=model
 
