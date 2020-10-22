@@ -24,34 +24,7 @@ class Net(torch.nn.Module):
 
 
     def loss_forward(self, x,y, N_M, no_sample):
-
         tau = self.tau
-        # axis =1
-        # if self.SIVI_by_col:
-        #     axis = 0
-
-        # sig1, sig2 = torch.log1p(torch.exp(self.fc1.weight_rho)), torch.log1p(torch.exp(self.fc2.weight_rho))
-
-        # w01, w02, log_likelihood, log_pw = 0,0,0,0
-        # for i in range(no_sample):
-        #     output = torch.transpose(self.forward(x),0,1)[0]
-        
-        #     if i == 0:
-        #         w01 = self.fc1.weight_n_bias
-        #         w02 = self.fc2.weight_n_bias
-            
-        #         log_likelihood = log_gauss(y,output,torch.Tensor([np.sqrt(1/tau)]),rho=False).sum()
-        #         log_pw = self.get_log_pw()
-                
-        #         q_w1 = torch.sum(-0.5*(w01-self.fc1.weight_mu)**2/sig1**2,axis=axis, keepdim=True)
-        #         q_w2 = torch.sum(-0.5*(w02-self.fc2.weight_mu)**2/sig2**2,axis=axis, keepdim=True)
-        #     else:
-        #         q_w1 = torch.cat((q_w1, torch.sum(-0.5*(w01 - self.fc1.weight_mu) ** 2 / sig1 ** 2, axis=axis, keepdim=True)), axis=axis)
-        #         q_w2 = torch.cat((q_w2, torch.sum(-0.5*(w02 - self.fc2.weight_mu) ** 2 / sig2 ** 2, axis=axis, keepdim=True)), axis=axis)
-  
-        # q_w1 = (torch.logsumexp(q_w1,dim=axis)).sum() - torch.log(sig1).sum() - (0.5*sig1.size()[-axis]*np.log(2*np.pi) + np.log(no_sample))*sig1.size()[axis-1]
-        # q_w2 = (torch.logsumexp(q_w2,dim=axis)).sum() - torch.log(sig2).sum() - (0.5*sig2.size()[-axis]*np.log(2*np.pi) + np.log(no_sample))*sig2.size()[axis-1]
-        
         output = torch.transpose(self.forward(x),0,1)[0]
             
         log_likelihood = log_gauss(y,output,torch.Tensor([np.sqrt(1/tau)]),rho=False).sum()

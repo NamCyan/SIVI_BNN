@@ -36,8 +36,8 @@ hid_layer = 400
 
 prior_gmm = False
 pi = 0.25
-sig_gau1 = 0.75
-sig_gau2 = 0.1
+sig_gau1 = np.exp(0)
+sig_gau2 = np.exp(-6)
 
 
 ###################load data

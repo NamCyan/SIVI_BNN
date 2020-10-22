@@ -9,20 +9,8 @@ from dataloader import uci as data
 from networks.SIVI_bnn_UCI import Net
 from approach.sivi_bnn_uci import Appr as appr
 
-"""
-Tune hyperparameters:
-    prior_w: pi, sigma1, sigma2
-    learning_rate, batch_size
-    layer_size: implicit and inference model
-"""
 
-
-
-###############################################
-
-
-
-##################init
+########################################
 """
 better exp:
   relu -> leaky
@@ -78,20 +66,16 @@ lr_min = 2e-6
 lr_factor=3
 lr_patience=5
 optim = 'Adam'
-output_dim =1
 
 semi_unit = False
-experiment = 'uci'
 semi_by_col = False #if true: semi followed by cols else followed by rows
 
 ###################load data
 print("Load data...")
 
 data_type = 'BOSTON'
-if data_type == 'PROTEIN' or data_type == 'YEAR':
-    hid_layer = 100
-else:
-    hid_layer = 50
+print('UCI DATASET: '+ data_type)
+
 if data_type == 'BOSTON':
     nepochs, n_splits, tau = 40, 20, [0.1,0.15,0.2]
 elif data_type == 'CONCRETE':
@@ -110,32 +94,36 @@ elif data_type == 'WINE':
     nepochs, n_splits, tau = 40, 20, [2.5,3.0,3.5]
 elif data_type == 'YACHT':
     nepochs, n_splits, tau = 40, 20, [0.25,0.5,0.75]
-    
+
+if data_type == 'PROTEIN' or data_type == 'YEAR':
+    hid_layer = 100
+else:
+    hid_layer = 50
+output_dim =1
 ######################Tune parameters
 
 nepochs = 200
 droprate = None
 lr = [0.001, 0.0001]
-SIVI_layer_size = 100
-SIVI_input_dim = 50
 sbatch = 32
 z_sample = 1
 nosample = 100
 test_sample = 100
+SIVI_layer_size = 100
+SIVI_input_dim = 50
+
 local_rep = True
 prior_gmm = False #prior is gau mixture (True) or gau unit 0,1 (False)
 
 tau.append(1)
 
 ##############################################
-print('UCI DATASET: '+ data_type)
 
 for l in lr:
   for t in tau:
     test_rs = []
     for split_id in range(n_splits):
         dat, input_dim, normalization_info= data.get(data_type, split_id) #read data
-
 
         xtrain = dat['train']['x'].cuda()
         ytrain = dat['train']['y'].cuda()
@@ -183,17 +171,17 @@ for l in lr:
         print('TESTING')
 
         test_loss, test_rmse, test_llh = Appr.eval(xtest, ytest,normalization_info)
-        print("Test: loss= {:.3f}, rmse={:.3f}, llh={:.3f}".format(test_loss,test_rmse,test_llh),end= '')
+        print("Test: loss= {:.3f}, rmse={:.3f}, llh={:.3f}".format(test_loss,test_rmse,test_llh),end= '\n')
         test_rs.append((test_rmse, test_llh))
         break
-    print()
+
     mean_rmse, mean_llh = np.mean(test_rs,0)
     max_rmse, max_llh = np.max(test_rs,0)
     min_rmse, min_llh = np.min(test_rs,0)
     print(test_rs)
     print("*"*200)
 
-    f = open("result/uci/rs.txt", "a")
+    f = open("result/uci/" +data_type+ ".txt", "a")
     if t == tau[0]:
         f.write("*Data: {} \nTune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, nosample={}, local_rep={}, prior_gmm={}, n_epochs= {}, tau={}\n rs: rmse: mean={}, max={}, min= {}; llh: mean={}, max={}, min={} \n".format(data_type,droprate,l,SIVI_layer_size, SIVI_input_dim, sbatch, nosample, str(local_rep), str(prior_gmm),nepochs,t,mean_rmse, max_rmse, min_rmse, mean_llh, max_llh, min_llh))
     else:

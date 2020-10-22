@@ -26,14 +26,6 @@ class Net(torch.nn.Module):
 
 
     def loss_forward(self, x,y, N_M, no_sample):
-
-        axis =1
-        if(self.SIVI_by_col):
-            axis = 0
-
-        sig1, sig2, sig3 = torch.log1p(torch.exp(self.fc1.weight_rho)), torch.log1p(
-            torch.exp(self.fc2.weight_rho)), torch.log1p(torch.exp(self.fc3.weight_rho))
-
         
         output = F.log_softmax(self.forward(x), dim=1)
         
@@ -46,7 +38,7 @@ class Net(torch.nn.Module):
         return loss
 
     def get_log_pw(self):
-        log_pw = self.fc1.get_log_pw() + self.fc2.get_log_pw()
+        log_pw = self.fc1.get_log_pw() + self.fc2.get_log_pw() + self.fc3.get_log_pw()
         return log_pw
 
     def get_log_qw(self, no_sample):
