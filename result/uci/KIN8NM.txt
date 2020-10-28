@@ -1,0 +1,3 @@
+*Data: KIN8NM 
+Tune parameters: droprate= 0.005, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=150
+ rs: rmse: mean=0.15109886229038239, max=0.15109886229038239, min= 0.15109886229038239; llh: mean=0.005847864784300327, max=0.005847864784300327, min=0.005847864784300327 

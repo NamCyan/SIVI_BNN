@@ -10,3 +10,36 @@ Tune parameters: droprate= 0.005, lr= 0.001, SIVI_layer_size= 100, SIVI_input_di
 
 Tune parameters: droprate= 0.005, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
  rs: rmse: mean=10.312601089477539, max=10.312601089477539, min= 10.312601089477539; llh: mean=-5.078391075134277, max=-5.078391075134277, min=-5.078391075134277 
+*Data: CONCRETE 
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.025
+ rs: rmse: mean=15.716075897216797, max=15.716075897216797, min= 15.716075897216797; llh: mean=-4.3957133293151855, max=-4.3957133293151855, min=-4.3957133293151855 
+
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.05
+ rs: rmse: mean=13.980525016784668, max=13.980525016784668, min= 13.980525016784668; llh: mean=-4.222753047943115, max=-4.222753047943115, min=-4.222753047943115 
+
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.075
+ rs: rmse: mean=13.334878921508789, max=13.334878921508789, min= 13.334878921508789; llh: mean=-4.127133369445801, max=-4.127133369445801, min=-4.127133369445801 
+
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=10.31383228302002, max=10.31383228302002, min= 10.31383228302002; llh: mean=-5.271757125854492, max=-5.271757125854492, min=-5.271757125854492 
+*Data: CONCRETE 
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.025
+ rs: rmse: mean=15.976754188537598, max=15.976754188537598, min= 15.976754188537598; llh: mean=-4.3834028244018555, max=-4.3834028244018555, min=-4.3834028244018555 
+
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.05
+ rs: rmse: mean=14.029071807861328, max=14.029071807861328, min= 14.029071807861328; llh: mean=-4.185885906219482, max=-4.185885906219482, min=-4.185885906219482 
+
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.075
+ rs: rmse: mean=12.944907188415527, max=12.944907188415527, min= 12.944907188415527; llh: mean=-4.121518135070801, max=-4.121518135070801, min=-4.121518135070801 
+
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=9.053020477294922, max=9.053020477294922, min= 9.053020477294922; llh: mean=-4.008459568023682, max=-4.008459568023682, min=-4.008459568023682 
+*Data: CONCRETE 
+Tune parameters: droprate= 0.1, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.025
+ rs: rmse: mean=15.38907241821289, max=15.38907241821289, min= 15.38907241821289; llh: mean=-4.329477310180664, max=-4.329477310180664, min=-4.329477310180664 
+
+Tune parameters: droprate= 0.1, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.05
+ rs: rmse: mean=14.451069831848145, max=14.451069831848145, min= 14.451069831848145; llh: mean=-4.2275390625, max=-4.2275390625, min=-4.2275390625 
+
+Tune parameters: droprate= 0.1, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.075
+ rs: rmse: mean=13.325592041015625, max=13.325592041015625, min= 13.325592041015625; llh: mean=-4.153437614440918, max=-4.153437614440918, min=-4.153437614440918 

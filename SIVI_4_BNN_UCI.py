@@ -73,7 +73,7 @@ semi_by_col = False #if true: semi followed by cols else followed by rows
 ###################load data
 print("Load data...")
 
-data_type = 'CONCRETE'
+data_type = 'KIN8NM'
 print('UCI DATASET: '+ data_type)
 
 if data_type == 'BOSTON':

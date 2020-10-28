@@ -1,0 +1,42 @@
+*Data: ENERGY 
+Tune parameters: droprate= 0.005, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.25
+ rs: rmse: mean=3.4403984546661377, max=3.4403984546661377, min= 3.4403984546661377; llh: mean=-3.1740622520446777, max=-3.1740622520446777, min=-3.1740622520446777 
+
+Tune parameters: droprate= 0.005, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.5
+ rs: rmse: mean=3.1346776485443115, max=3.1346776485443115, min= 3.1346776485443115; llh: mean=-3.0505969524383545, max=-3.0505969524383545, min=-3.0505969524383545 
+
+Tune parameters: droprate= 0.005, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.75
+ rs: rmse: mean=3.0886764526367188, max=3.0886764526367188, min= 3.0886764526367188; llh: mean=-2.9874165058135986, max=-2.9874165058135986, min=-2.9874165058135986 
+
+Tune parameters: droprate= 0.005, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=3.22330904006958, max=3.22330904006958, min= 3.22330904006958; llh: mean=-2.9424245357513428, max=-2.9424245357513428, min=-2.9424245357513428 
+*Data: ENERGY 
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.25
+ rs: rmse: mean=3.6496613025665283, max=3.6496613025665283, min= 3.6496613025665283; llh: mean=-3.1750857830047607, max=-3.1750857830047607, min=-3.1750857830047607 
+
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.5
+ rs: rmse: mean=3.281247138977051, max=3.281247138977051, min= 3.281247138977051; llh: mean=-3.0545480251312256, max=-3.0545480251312256, min=-3.0545480251312256 
+
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.75
+ rs: rmse: mean=3.3681886196136475, max=3.3681886196136475, min= 3.3681886196136475; llh: mean=-2.9603543281555176, max=-2.9603543281555176, min=-2.9603543281555176 
+
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=3.23984694480896, max=3.23984694480896, min= 3.23984694480896; llh: mean=-3.002230405807495, max=-3.002230405807495, min=-3.002230405807495 
+*Data: ENERGY 
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.25
+ rs: rmse: mean=3.4554266929626465, max=3.4554266929626465, min= 3.4554266929626465; llh: mean=-3.1649136543273926, max=-3.1649136543273926, min=-3.1649136543273926 
+
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.5
+ rs: rmse: mean=3.147055149078369, max=3.147055149078369, min= 3.147055149078369; llh: mean=-3.0318691730499268, max=-3.0318691730499268, min=-3.0318691730499268 
+
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.75
+ rs: rmse: mean=3.247370958328247, max=3.247370958328247, min= 3.247370958328247; llh: mean=-2.948627471923828, max=-2.948627471923828, min=-2.948627471923828 
+
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=3.3135149478912354, max=3.3135149478912354, min= 3.3135149478912354; llh: mean=-3.019850015640259, max=-3.019850015640259, min=-3.019850015640259 
+*Data: ENERGY 
+Tune parameters: droprate= 0.1, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.25
+ rs: rmse: mean=3.565526008605957, max=3.565526008605957, min= 3.565526008605957; llh: mean=-3.1792502403259277, max=-3.1792502403259277, min=-3.1792502403259277 
+
+Tune parameters: droprate= 0.1, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.5
+ rs: rmse: mean=3.078068971633911, max=3.078068971633911, min= 3.078068971633911; llh: mean=-2.9977166652679443, max=-2.9977166652679443, min=-2.9977166652679443 

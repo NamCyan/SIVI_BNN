@@ -112,8 +112,11 @@ def log_prior_w(w, Pi= 0.5, sigma1= 1, sigma2= np.exp(-6), gmm = True):
         sig1 = torch.Tensor(w.shape).uniform_(sigma1,sigma1).cuda()
         sig2 = torch.Tensor(w.shape).uniform_(sigma2,sigma2).cuda()
         mu = torch.Tensor(w.shape).uniform_(0,0).cuda()
-        p = Pi*torch.exp(log_gauss(w,mu,sig1, rho= False)) + (1-Pi)*torch.exp(log_gauss(w,mu,sig2, rho= False))
-        p = torch.log(p)
+        gau1 = log_gauss(w,mu,sig1, rho= False) + np.log(Pi)
+        gau2 = log_gauss(w,mu,sig2, rho= False) + np.log(1-Pi)
+        gau = torch.cat([gau1.unsqueeze(0),gau2.unsqueeze(0)], 0)
+        #p = Pi*torch.exp(log_gauss(w,mu,sig1, rho= False)) + (1-Pi)*torch.exp(log_gauss(w,mu,sig2, rho= False))
+        p = torch.logsumexp(gau,dim=0)
    
     else:
         log2_pi = torch.Tensor([np.log(2*np.pi)]).cuda()

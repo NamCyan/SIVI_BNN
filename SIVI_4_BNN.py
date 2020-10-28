@@ -94,7 +94,7 @@ output_dim = 10
 
 ##########################Tune parameters
 nepochs = 300
-lr = 0.0001
+lr = 0.001
 droprate = None
 sbatch = 256
 nosample = 10
@@ -102,8 +102,8 @@ test_sample = 10
 SIVI_input_dim = 100
 SIVI_layer_size = 400
 
-prior_gmm = False #prior is gau mixture (True) or gau unit 0,1 (False)
 local_rep = True
+prior_gmm = True #prior is gau mixture (True) or gau unit 0,1 (False)
 
 #####################init model and apply approach
 torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -122,8 +122,10 @@ for name, param in model.named_parameters():
         cnt_param += 1
         print("\t"+ name)
 print('\tTotal: '+ str(cnt_param))
-print('*'*200)
-
+print('-'*200)
+print("Approach parameters: optim ={}, nosample= {}, test_sample= {}, nepochs= {}, sbatch= {}, lr= {}".format(optim, nosample, test_sample, nepochs, sbatch, lr), end='\n')
+print("Model parameters: hid_layer= {}, prior_gmm= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, droprate= {}, local_rep= {}".format(hid_layer,prior_gmm, SIVI_layer_size, SIVI_input_dim, droprate, local_rep),end='\n')
+print("-"*200)
 ##################### TRAIN
 print('TRAINING')
 Appr.train(xtrain,ytrain,xvalid,yvalid,xtest, ytest)
@@ -133,3 +135,6 @@ print('*'*200)
 print('TESTING')
 test_loss, test_acc = Appr.eval(xtest, ytest)
 print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '')
+f = open("result/mnist/mnist.txt", "a")
+f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, nosample={}, local_rep={}, prior_gmm={}, n_epochs= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, nosample, str(local_rep), str(prior_gmm),nepochs))
+f.close()
