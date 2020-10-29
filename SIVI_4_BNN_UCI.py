@@ -27,41 +27,6 @@ else:
     print('[CUDA unavailable]'); sys.exit()
 
 ##################################################
-"""
-#train 97.x, valid 96.x, test 96.x
-lr = 0.001
-nepochs = 150
-sbatch = 256
-lr_min=2e-6
-lr_factor=3
-lr_patience=5
-nosample = 10
-hid_layer = 100
-optim = 'Adam'
-SIVI_layer_size = 100
-SIVI_input_dim = 40
-semi_unit = False
-prior_gmm = False
-semi_by_col = False
-
-#best: 98.5, valid 97.5, test 97.4
-lr = 0.001
-nepochs = 300
-sbatch = 256
-lr_min=2e-6
-lr_factor=3
-lr_patience=5
-nosample = 10
-hid_layer = 100
-optim = 'Adam'
-SIVI_layer_size = 400
-SIVI_input_dim = 100
-semi_unit = False
-prior_gmm = False
-semi_by_col = False
-"""
-
-
 lr_min = 1e-7
 lr_factor=3
 lr_patience=5
@@ -103,7 +68,7 @@ output_dim =1
 ######################Tune parameters
 
 nepochs = 200
-droprate = [0.005,0.01,0.05,0.1]
+droprate = [None, 0.005,0.01,0.05,0.1]
 lr = [0.001, 0.0001]
 sbatch = 32
 z_sample = 1
@@ -160,8 +125,8 @@ for l in lr:
                       print("\t"+ name)
               print('\tTotal: '+ str(cnt_param))
               print('*'*200)
-              print('Approach param: optim= {}, train_sample= {}, test_sample= {}, w_sample= {}, nepochs= {}, sbatch= {}, lr= {}'.format(optim, train_sample, test_sample, w_sample, nepochs, sbatch, l),end='\n')
-              print('Model param: prior_gmm= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, droprate= {}, local_rep= {}, tau= {}'.format(prior_gmm, SIVI_layer_size, SIVI_input_dim, dr, local_rep, t),end='\n')
+              print('Approach param: optim: (optim= {}, lr= {}), sample: (train_sample= {}, test_sample= {}, w_sample= {}), (nepochs= {}, sbatch= {})'.format(optim, l, train_sample, test_sample, w_sample, nepochs, sbatch),end='\n')
+              print('Model param: layer_size: (hid_layer = {}, SIVI_layer_size= {}, SIVI_input_dim= {}), prior_gmm= {}, local_rep= {}, droprate= {}, tau= {}'.format(hid_layer,SIVI_layer_size, SIVI_input_dim, prior_gmm, local_rep, dr, t),end='\n')
               print("tau= {}, lr = {}, droprate = {}\n".format(t,l,dr))
           print('Load split: '+ str(split_id))
           print('Done!')
@@ -187,8 +152,8 @@ for l in lr:
 
       f = open("result/uci/" +data_type+ ".txt", "a")
       if t == tau[0]:
-          f.write("*Data: {} \nTune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}, tau={}\n rs: rmse: mean={}, max={}, min= {}; llh: mean={}, max={}, min={} \n".format(data_type,dr,l,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, w_sample, str(local_rep), str(prior_gmm),nepochs,t,mean_rmse, max_rmse, min_rmse, mean_llh, max_llh, min_llh))
+          f.write("*Data: {} \nTune parameters: droprate= {}, lr= {}, tau={}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n rs: rmse: mean={}, max={}, min= {}; llh: mean={}, max={}, min={} \n".format(data_type,dr,l,t,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, w_sample, str(local_rep), str(prior_gmm),nepochs,mean_rmse, max_rmse, min_rmse, mean_llh, max_llh, min_llh))
       else:
-          f.write("\nTune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}, tau={}\n rs: rmse: mean={}, max={}, min= {}; llh: mean={}, max={}, min={} \n".format(dr,l,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, w_sample, str(local_rep), str(prior_gmm),nepochs,t,mean_rmse, max_rmse, min_rmse, mean_llh, max_llh, min_llh))
+          f.write("\nTune parameters: droprate= {}, lr= {}, tau={}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n rs: rmse: mean={}, max={}, min= {}; llh: mean={}, max={}, min={} \n".format(dr,l,t,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, w_sample, str(local_rep), str(prior_gmm),nepochs,mean_rmse, max_rmse, min_rmse, mean_llh, max_llh, min_llh))
 
       f.close()

@@ -24,9 +24,7 @@ class Net(torch.nn.Module):
         y = self.fc3(h, self.local_rep, train= train)
         return y
 
-
-    def loss_forward(self, x,y, N_M, no_sample):
-        
+    def loss_forward(self, x,y, N_M, no_sample):       
         output = F.log_softmax(self.forward(x), dim=1)
         
         log_likelihood = F.nll_loss(output, y, reduction='sum')
@@ -34,7 +32,6 @@ class Net(torch.nn.Module):
         log_qw = self.get_log_qw(no_sample)
 
         loss =  log_likelihood + (log_qw - log_pw)/N_M
-
         return loss
 
     def get_log_pw(self):

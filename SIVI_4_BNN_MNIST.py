@@ -5,8 +5,8 @@ import torch.nn.functional as F
 import time
 import matplotlib.pyplot as plt
 from dataloader import mnist as data
-from networks.SIVI_bnn import Net
-from approach.sivi_bnn import Appr as appr
+from networks.SIVI_bnn_MNIST import Net
+from approach.sivi_bnn_mnist import Appr as appr
 
 
 
@@ -93,13 +93,13 @@ hid_layer = 400
 output_dim = 10
 
 ##########################Tune parameters
-nepochs = 300
+nepochs = 800
 lr = 0.0001
 droprate = None
 sbatch = 256
 train_sample = 10
-test_sample = 10
-w_sample = 10
+test_sample = 50
+w_sample = 1
 SIVI_input_dim = 100
 SIVI_layer_size = 400
 
@@ -124,8 +124,8 @@ for name, param in model.named_parameters():
         print("\t"+ name)
 print('\tTotal: '+ str(cnt_param))
 print('-'*200)
-print("Approach parameters: optim ={}, train_sample= {}, test_sample= {}, w_sample= {}, nepochs= {}, sbatch= {}, lr= {}".format(optim, train_sample, test_sample, w_sample, nepochs, sbatch, lr), end='\n')
-print("Model parameters: hid_layer= {}, prior_gmm= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, droprate= {}, local_rep= {}".format(hid_layer,prior_gmm, SIVI_layer_size, SIVI_input_dim, droprate, local_rep),end='\n')
+print("Approach parameters: optim: (optim ={}, lr= {}), sample: (train_sample= {}, test_sample= {}, w_sample= {}), (nepochs= {}, sbatch= {})".format(optim, lr, train_sample, test_sample, w_sample, nepochs, sbatch), end='\n')
+print("Model parameters: layer_size: (hid_layer= {}, SIVI_layer_size= {}, SIVI_input_dim= {}), droprate= {}, prior_gmm= {}, local_rep= {}".format(hid_layer, SIVI_layer_size, SIVI_input_dim, droprate, prior_gmm, local_rep),end='\n')
 print("-"*200)
 ##################### TRAIN
 print('TRAINING')

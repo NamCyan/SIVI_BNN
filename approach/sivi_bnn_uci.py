@@ -16,6 +16,7 @@ class Appr(object):
     def __init__(self,model,optim = 'Adam', train_sample=10, test_sample= 10, w_sample= 10, nepochs=100, sbatch=256, lr=0.001, lr_min=1e-6, lr_factor=3, lr_patience=5, clipgrad=100, args=None, log_name=None, split=False):
         self.model=model
         self.model_old=model
+        self.valid_rs = []
 
 
         #file_name = log_name
@@ -47,6 +48,7 @@ class Appr(object):
 
     def train(self, xtrain, ytrain, xvalid, yvalid, xtest, ytest,normalization_info):
         best_loss = np.inf
+        best_llh = -np.inf
         best_model = utils.get_model(self.model)
         lr = self.lr
         patience = self.lr_patience
@@ -71,12 +73,16 @@ class Appr(object):
             # Valid
             valid_loss,valid_rmse, valid_llh=self.eval(xvalid,yvalid,normalization_info)
             print(' Valid: loss={:.3f}, rmse={:.3f}, llh={:.3f} |'.format(valid_loss,valid_rmse,valid_llh),end='')
-            test_loss,test_rmse,test_llh=self.eval(xtest,ytest,normalization_info)
-            print(' Test: loss= {:.3f}, rmse={:.3f}, llh={:.3f} |'.format(test_loss,test_rmse,test_llh),end='')
+            # test_loss,test_rmse,test_llh=self.eval(xtest,ytest,normalization_info)
+            # print(' Test: loss= {:.3f}, rmse={:.3f}, llh={:.3f} |'.format(test_loss,test_rmse,test_llh),end='')
+            self.valid_rs.append((valid_loss,valid_rmse, valid_llh))
             # Adapt lr
+            if valid_llh > best_llh:
+                best_model = utils.get_model(self.model)
+                best_llh = valid_llh
+
             if valid_loss < best_loss:
                 best_loss = valid_loss
-                best_model = utils.get_model(self.model)
                 patience = self.lr_patience
                 print(' *', end='')
             

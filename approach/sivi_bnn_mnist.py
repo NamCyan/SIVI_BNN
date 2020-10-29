@@ -8,7 +8,7 @@ sys.path.append('..')
 import torch.nn.functional as F
 import torch.nn as nn
 
-from networks.SIVI_bnn import Net
+from networks.SIVI_bnn_MNIST import Net
 from bayes_layer import SIVI_bayes_layer
 
 class Appr(object):
@@ -16,6 +16,7 @@ class Appr(object):
     def __init__(self,model,optim = 'Adam', train_sample=10, test_sample = 10, w_sample= 10, nepochs=100,sbatch=256,lr=0.001,lr_min=1e-6,lr_factor=3,lr_patience=5,clipgrad=100):
         self.model=model
         self.model_old=model
+        self.valid_rs = []
 
 
         #file_name = log_name
@@ -38,8 +39,7 @@ class Appr(object):
         return
 
     def _get_optimizer(self,lr=None):
-        if lr is None: lr=self.lr
-        
+        if lr is None: lr=self.lr       
         if self.optim == 'SGD':
             return torch.optim.SGD(self.model.parameters(),lr=lr)
         if self.optim == 'Adam':
@@ -47,6 +47,7 @@ class Appr(object):
 
     def train(self, xtrain, ytrain, xvalid, yvalid, xtest, ytest):
         best_loss = np.inf
+        best_acc = -np.inf
         best_model = utils.get_model(self.model)
         lr = self.lr
         patience = self.lr_patience
@@ -71,12 +72,16 @@ class Appr(object):
             # Valid
             valid_loss,valid_acc=self.eval(xvalid,yvalid)
             print(' Valid: loss={:.3f}, acc={:5.1f}% |'.format(valid_loss,100*valid_acc),end='')
-            test_loss,test_acc=self.eval(xtest,ytest)
-            print(' Test: acc={:5.1f}% |'.format(100*test_acc),end='')
+            # test_loss,test_acc=self.eval(xtest,ytest)
+            # print(' Test: acc={:5.1f}% |'.format(100*test_acc),end='')
+            self.valid_rs.append((valid_loss,valid_acc))
             # Adapt lr
+            if valid_acc > best_acc:
+                best_model = utils.get_model(self.model)
+                best_acc = valid_acc
+                
             if valid_loss < best_loss:
                 best_loss = valid_loss
-                best_model = utils.get_model(self.model)
                 patience = self.lr_patience
                 print(' *', end='')
             
@@ -84,9 +89,9 @@ class Appr(object):
                 patience -= 1
                 if patience <= 0:
                     lr /= self.lr_factor
-                    lr = self.lr_min
                     print(' lr={:.1e}'.format(lr), end='')
                     if lr < self.lr_min:
+                        lr = self.lr_min
                         print()
                     patience = self.lr_patience
                     self.optimizer = self._get_optimizer(lr)

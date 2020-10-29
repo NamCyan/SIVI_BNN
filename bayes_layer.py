@@ -186,12 +186,6 @@ class SIVI_bayes_layer(nn.Module):
 
         sig = torch.log1p(torch.exp(self.weight_rho))
         
-        # q_w = torch.sum(-0.5*(self.weight_n_bias-self.weight_mu)**2/sig**2,axis=axis, keepdim=True)
-        # for weight_mu in w_mu:
-        #     q_w = torch.cat((q_w, torch.sum(-0.5*(self.weight_n_bias - weight_mu) ** 2 / sig ** 2, axis=axis, keepdim=True)), axis=axis)
-        
-        # log_q_w = (torch.logsumexp(q_w,dim=axis)).sum() - torch.log(sig).sum() - (0.5*sig.size()[-axis]*np.log(2*np.pi) + np.log(len(w_mu)+1))*sig.size()[axis-1]
-
         for i in range(no_sample):
             if i == 0:
                 q_w = torch.sum(-0.5*(self.weight_n_bias-self.weight_mu)**2/sig**2,axis=axis, keepdim=True)
@@ -200,27 +194,27 @@ class SIVI_bayes_layer(nn.Module):
                 semi_input = self.semi_input.sample()
 
                 if self.SIVI_by_col:
-                    self.weight_mu = torch.transpose(self.SIVI(semi_input),0,1)
+                    weight_mu = torch.transpose(self.SIVI(semi_input),0,1)
                 else:
-                    self.weight_mu = self.SIVI(semi_input)
+                    weight_mu = self.SIVI(semi_input)
 
-                q_w = torch.cat((q_w, torch.sum(-0.5*(self.weight_n_bias - self.weight_mu) ** 2 / sig ** 2, axis=axis, keepdim=True)), axis=axis)
+                q_w = torch.cat((q_w, torch.sum(-0.5*(self.weight_n_bias - weight_mu) ** 2 / sig ** 2, axis=axis, keepdim=True)), axis=axis)
         
         log_q_w = (torch.logsumexp(q_w,dim=axis)).sum() - torch.log(sig).sum() - (0.5*sig.size()[-axis]*np.log(2*np.pi) + np.log(no_sample))*sig.size()[axis-1]
         return log_q_w
 
-    def sample_wmu(self, no_sample):
-        wmu = []
-        for i in range(no_sample):
-            semi_input = self.semi_input.sample()
+    # def sample_wmu(self, no_sample):
+    #     wmu = []
+    #     for i in range(no_sample):
+    #         semi_input = self.semi_input.sample()
 
-            if self.SIVI_by_col:
-                self.weight_mu = torch.transpose(self.SIVI(semi_input),0,1)
-            else:
-                self.weight_mu = self.SIVI(semi_input)
+    #         if self.SIVI_by_col:
+    #             self.weight_mu = torch.transpose(self.SIVI(semi_input),0,1)
+    #         else:
+    #             self.weight_mu = self.SIVI(semi_input)
             
-            wmu.append(self.weight_mu)
-        return wmu
+    #         wmu.append(self.weight_mu)
+    #     return wmu
 
 ################################################################################
 class VCLBayesianLinear(nn.Module):
