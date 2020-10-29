@@ -144,13 +144,14 @@ class SIVI_bayes_layer(nn.Module):
         self.semi_input = Gaussian(self.semi_mu, self.semi_rho)
 
 
-    def forward(self, net_input, local_rep = True):
-        semi_input = self.semi_input.sample()
-
-        if self.SIVI_by_col:
-            self.weight_mu = torch.transpose(self.SIVI(semi_input),0,1)
-        else:
-            self.weight_mu = self.SIVI(semi_input)
+    def forward(self, net_input, local_rep = True, train= True):
+        if train:
+            semi_input = self.semi_input.sample()
+        
+            if self.SIVI_by_col:
+                self.weight_mu = torch.transpose(self.SIVI(semi_input),0,1)
+            else:
+                self.weight_mu = self.SIVI(semi_input)
 
 
         self.weight_n_bias = Gaussian(self.weight_mu, self.weight_rho).sample()

@@ -13,3 +13,78 @@ Tune parameters: droprate= 0.005, lr= 0.001, SIVI_layer_size= 100, SIVI_input_di
 *Data: BOSTON 
 Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.1
  rs: rmse: mean=3.876413345336914, max=3.876413345336914, min= 3.876413345336914; llh: mean=-3.2802698612213135, max=-3.2802698612213135, min=-3.2802698612213135 
+*Data: BOSTON 
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.1
+ rs: rmse: mean=4.783505916595459, max=4.783505916595459, min= 4.783505916595459; llh: mean=-3.4056835174560547, max=-3.4056835174560547, min=-3.4056835174560547 
+
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.15
+ rs: rmse: mean=4.2024641036987305, max=4.2024641036987305, min= 4.2024641036987305; llh: mean=-3.264561176300049, max=-3.264561176300049, min=-3.264561176300049 
+
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.2
+ rs: rmse: mean=3.8622846603393555, max=3.8622846603393555, min= 3.8622846603393555; llh: mean=-3.1469757556915283, max=-3.1469757556915283, min=-3.1469757556915283 
+
+Tune parameters: droprate= 0.01, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=2.9557735919952393, max=2.9557735919952393, min= 2.9557735919952393; llh: mean=-2.6709935665130615, max=-2.6709935665130615, min=-2.6709935665130615 
+*Data: BOSTON 
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.1
+ rs: rmse: mean=3.964700698852539, max=3.964700698852539, min= 3.964700698852539; llh: mean=-3.2791848182678223, max=-3.2791848182678223, min=-3.2791848182678223 
+
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.15
+ rs: rmse: mean=4.1078643798828125, max=4.1078643798828125, min= 4.1078643798828125; llh: mean=-3.1793599128723145, max=-3.1793599128723145, min=-3.1793599128723145 
+
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.2
+ rs: rmse: mean=3.804713010787964, max=3.804713010787964, min= 3.804713010787964; llh: mean=-3.1474742889404297, max=-3.1474742889404297, min=-3.1474742889404297 
+
+Tune parameters: droprate= 0.05, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=3.1781837940216064, max=3.1781837940216064, min= 3.1781837940216064; llh: mean=-2.784611463546753, max=-2.784611463546753, min=-2.784611463546753 
+*Data: BOSTON 
+Tune parameters: droprate= 0.1, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.1
+ rs: rmse: mean=4.563414573669434, max=4.563414573669434, min= 4.563414573669434; llh: mean=-3.290315866470337, max=-3.290315866470337, min=-3.290315866470337 
+
+Tune parameters: droprate= 0.1, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.15
+ rs: rmse: mean=3.771200656890869, max=3.771200656890869, min= 3.771200656890869; llh: mean=-3.170379638671875, max=-3.170379638671875, min=-3.170379638671875 
+
+Tune parameters: droprate= 0.1, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.2
+ rs: rmse: mean=3.9672839641571045, max=3.9672839641571045, min= 3.9672839641571045; llh: mean=-3.0769927501678467, max=-3.0769927501678467, min=-3.0769927501678467 
+
+Tune parameters: droprate= 0.1, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=3.1064329147338867, max=3.1064329147338867, min= 3.1064329147338867; llh: mean=-2.6713876724243164, max=-2.6713876724243164, min=-2.6713876724243164 
+*Data: BOSTON 
+Tune parameters: droprate= 0.01, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.1
+ rs: rmse: mean=7.545571327209473, max=7.545571327209473, min= 7.545571327209473; llh: mean=-3.311248302459717, max=-3.311248302459717, min=-3.311248302459717 
+
+Tune parameters: droprate= 0.01, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.15
+ rs: rmse: mean=7.848312854766846, max=7.848312854766846, min= 7.848312854766846; llh: mean=-3.4187674522399902, max=-3.4187674522399902, min=-3.4187674522399902 
+
+Tune parameters: droprate= 0.01, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.2
+ rs: rmse: mean=7.381094455718994, max=7.381094455718994, min= 7.381094455718994; llh: mean=-3.2493419647216797, max=-3.2493419647216797, min=-3.2493419647216797 
+
+Tune parameters: droprate= 0.01, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=6.749074459075928, max=6.749074459075928, min= 6.749074459075928; llh: mean=-3.2964346408843994, max=-3.2964346408843994, min=-3.2964346408843994 
+*Data: BOSTON 
+Tune parameters: droprate= 0.05, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.1
+ rs: rmse: mean=7.176596641540527, max=7.176596641540527, min= 7.176596641540527; llh: mean=-3.334096908569336, max=-3.334096908569336, min=-3.334096908569336 
+
+Tune parameters: droprate= 0.05, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.15
+ rs: rmse: mean=7.355322360992432, max=7.355322360992432, min= 7.355322360992432; llh: mean=-3.3377954959869385, max=-3.3377954959869385, min=-3.3377954959869385 
+
+Tune parameters: droprate= 0.05, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.2
+ rs: rmse: mean=7.960999488830566, max=7.960999488830566, min= 7.960999488830566; llh: mean=-3.4640142917633057, max=-3.4640142917633057, min=-3.4640142917633057 
+
+Tune parameters: droprate= 0.05, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=7.1509857177734375, max=7.1509857177734375, min= 7.1509857177734375; llh: mean=-3.612358331680298, max=-3.612358331680298, min=-3.612358331680298 
+*Data: BOSTON 
+Tune parameters: droprate= 0.1, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.1
+ rs: rmse: mean=7.489074230194092, max=7.489074230194092, min= 7.489074230194092; llh: mean=-3.293440341949463, max=-3.293440341949463, min=-3.293440341949463 
+
+Tune parameters: droprate= 0.1, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.15
+ rs: rmse: mean=7.598677158355713, max=7.598677158355713, min= 7.598677158355713; llh: mean=-3.2852065563201904, max=-3.2852065563201904, min=-3.2852065563201904 
+
+Tune parameters: droprate= 0.1, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=0.2
+ rs: rmse: mean=7.478941440582275, max=7.478941440582275, min= 7.478941440582275; llh: mean=-3.3690731525421143, max=-3.3690731525421143, min=-3.3690731525421143 
+
+Tune parameters: droprate= 0.1, lr= 0.0001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, nosample=100, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=5.2549052238464355, max=5.2549052238464355, min= 5.2549052238464355; llh: mean=-3.0164284706115723, max=-3.0164284706115723, min=-3.0164284706115723 
+
+Tune parameters: droprate= 0.005, lr= 0.001, SIVI_layer_size= 100, SIVI_input_dim= 50, sbatch= 32, train_sample=100, test_sample= 100, w_sample= 1, local_rep=True, prior_gmm=False, n_epochs= 200, tau=1
+ rs: rmse: mean=3.1067605018615723, max=3.1067605018615723, min= 3.1067605018615723; llh: mean=-2.662017345428467, max=-2.662017345428467, min=-2.662017345428467 

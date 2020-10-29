@@ -16,10 +16,10 @@ class Net(torch.nn.Module):
     
         self.relu = torch.nn.ReLU()
 
-    def forward(self,x):
+    def forward(self,x, train= True):
         h = x.view(x.size(0),-1)
-        h = self.relu(self.fc1(h, self.local_rep))
-        y = self.fc2(h, self.local_rep)
+        h = self.relu(self.fc1(h, self.local_rep, train= train))
+        y = self.fc2(h, self.local_rep, train= train)
         return y
 
 
@@ -43,22 +43,30 @@ class Net(torch.nn.Module):
         log_qw = self.fc1.get_log_qw(no_sample) + self.fc2.get_log_qw(no_sample)
         return log_qw
 
-    def pred_sample(self, x, y, no_sample, normalization_info):
+    def pred_sample(self, x, y, semi_sample, w_sample, normalization_info):
+        #semi_sample: số lượng lấy mẫu input của mạng SIVI
+        #w_sample: số lượng lấy mẫu weight cho từng sample của SIVI
+        #ví dụ semi_sample= 10, w_sample= 10 => sample 100 weight
+      
         output_mean = normalization_info['output mean'].cuda()
         output_std = normalization_info['output std'].cuda()
         
         out = torch.zeros(len(y)).cuda() #use to calculate rmse
         output_sample = torch.empty((0,)) #use to calculate loglikelihood
 
-        for i in range(no_sample):
-            output = torch.transpose(self.forward(x),0,1)
+        for i in range(semi_sample):
+            output = torch.transpose(self.forward(x, train= True),0,1)
             output_sample = torch.cat([output_sample,output])
             out += output[0]*output_std + output_mean
+            for j in range(w_sample-1):
+                output = torch.transpose(self.forward(x, train= False),0,1)
+                output_sample = torch.cat([output_sample,output])
+                out += output[0]*output_std + output_mean
         
         output_sample = output_sample* output_std + output_mean
         targets = y* output_std + output_mean
         
-        rmse_part = (out/no_sample - targets)**2
+        rmse_part = (out/(semi_sample*w_sample) - targets)**2
         llh_part = torch.logsumexp(-0.5 * self.tau * (torch.unsqueeze(targets,0) - output_sample)**2, 0)
         return rmse_part, llh_part
 

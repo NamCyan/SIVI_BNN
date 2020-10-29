@@ -13,15 +13,16 @@ from bayes_layer import SIVI_bayes_layer
 
 class Appr(object):
   
-    def __init__(self,model,optim = 'Adam', nosample=10, test_sample= 10, nepochs=100, sbatch=256, lr=0.001, lr_min=1e-6, lr_factor=3, lr_patience=5, clipgrad=100, args=None, log_name=None, split=False):
+    def __init__(self,model,optim = 'Adam', train_sample=10, test_sample= 10, w_sample= 10, nepochs=100, sbatch=256, lr=0.001, lr_min=1e-6, lr_factor=3, lr_patience=5, clipgrad=100, args=None, log_name=None, split=False):
         self.model=model
         self.model_old=model
 
 
         #file_name = log_name
         #self.logger = utils.logger(file_name=file_name, resume=False, path='./result_data/csvdata/', data_format='csv')      
-        self.nosample = nosample
+        self.train_sample = train_sample
         self.test_sample = test_sample
+        self.w_sample = w_sample
         self.nepochs = nepochs
         self.sbatch = sbatch
         self.lr = lr
@@ -119,7 +120,7 @@ class Appr(object):
             mini_batch_size = len(targets)
             N_M = len(r) / mini_batch_size
 
-            loss = self.model.loss_forward(images, targets, N_M, no_sample= self.nosample)
+            loss = self.model.loss_forward(images, targets, N_M, no_sample= self.train_sample)
             
 
             self.optimizer.zero_grad()
@@ -136,8 +137,8 @@ class Appr(object):
         total_num=0
 
         tau = self.model.tau
-        output_mean = normalization_info['output mean'].cuda()
-        output_std = normalization_info['output std'].cuda()
+        semi_sample = self.test_sample
+        w_sample = self.w_sample
 
         batchs =self.sbatch
         batchs = 256
@@ -163,8 +164,8 @@ class Appr(object):
                 mini_batch_size = len(targets)
                 N_M = len(r) / mini_batch_size
 
-                loss = self.model.loss_forward(images, targets, N_M, self.test_sample)
-                rmse_part, llh_part = self.model.pred_sample(images, targets, self.test_sample, normalization_info)
+                loss = self.model.loss_forward(images, targets, N_M, no_sample= semi_sample)
+                rmse_part, llh_part = self.model.pred_sample(images, targets, semi_sample= semi_sample, w_sample= w_sample, normalization_info= normalization_info)
                 
                 logexpsum_pred = torch.cat([logexpsum_pred,llh_part])
                 rmse = torch.cat([rmse,rmse_part])
@@ -172,7 +173,7 @@ class Appr(object):
                 total_loss += loss.data.cpu().numpy()
                 total_num += len(b)
 
-            log_likelihood = (logexpsum_pred - np.log(self.test_sample) - 0.5*np.log(2*np.pi) + 0.5*np.log(tau)).mean().data.cpu().numpy()
+            log_likelihood = (logexpsum_pred - np.log(semi_sample*w_sample) - 0.5*np.log(2*np.pi) + 0.5*np.log(tau)).mean().data.cpu().numpy()
             total_rmse = torch.sqrt(rmse.mean()).data.cpu().numpy()
 
         return total_loss/total_num,total_rmse, log_likelihood

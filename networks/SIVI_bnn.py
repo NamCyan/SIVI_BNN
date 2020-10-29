@@ -17,11 +17,11 @@ class Net(torch.nn.Module):
         self.fc3 = SIVI_bayes_layer(hid2, outputdim, prior_gmm=prior_gmm, SIVI_by_col=SIVI_by_col, SIVI_input_dim=SIVI_input_dim, SIVI_layer_size=SIVI_layer_size, semi_unit= semi_unit, droprate= droprate,ratio=ratio)
         self.relu = torch.nn.ReLU()
 
-    def forward(self,x):
+    def forward(self,x, train= True):
         h = x.view(x.size(0),-1)
-        h = self.relu(self.fc1(h, self.local_rep))
-        h = self.relu(self.fc2(h, self.local_rep))
-        y = self.fc3(h, self.local_rep)
+        h = self.relu(self.fc1(h, self.local_rep, train= train))
+        h = self.relu(self.fc2(h, self.local_rep, train= train))
+        y = self.fc3(h, self.local_rep, train= train)
         return y
 
 
@@ -45,14 +45,17 @@ class Net(torch.nn.Module):
         log_qw = self.fc1.get_log_qw(no_sample) + self.fc2.get_log_qw(no_sample) + self.fc3.get_log_qw(no_sample)
         return log_qw
 
-    def pred_sample(self, x, y, no_sample):
+    def pred_sample(self, x, y, semi_sample, w_sample):
         out = torch.zeros([len(x),self.outputdim])
   
-        for i in range(no_sample):
-            output = F.log_softmax(self.forward(x), dim=1)
+        for i in range(semi_sample):
+            output = F.log_softmax(self.forward(x, train= True), dim=1)
             out += output
+            for j in range(w_sample-1):
+                output = F.log_softmax(self.forward(x, train= False), dim=1)
+                out += output
 
-        return out/no_sample
+        return out/(semi_sample*w_sample)
 
 if __name__ == "__main__":
     bnn = Net(28*28, [400,400], 10, SIVI_by_col=True)

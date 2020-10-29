@@ -62,7 +62,7 @@ semi_by_col = False
 """
 
 
-lr_min = 2e-6
+lr_min = 1e-7
 lr_factor=3
 lr_patience=5
 optim = 'Adam'
@@ -94,22 +94,23 @@ output_dim = 10
 
 ##########################Tune parameters
 nepochs = 300
-lr = 0.001
+lr = 0.0001
 droprate = None
 sbatch = 256
-nosample = 10
+train_sample = 10
 test_sample = 10
+w_sample = 10
 SIVI_input_dim = 100
 SIVI_layer_size = 400
 
 local_rep = True
-prior_gmm = True #prior is gau mixture (True) or gau unit 0,1 (False)
+prior_gmm = False #prior is gau mixture (True) or gau unit 0,1 (False)
 
 #####################init model and apply approach
 torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
 model = Net(input_dim, [hid_layer,hid_layer], output_dim, prior_gmm=prior_gmm,SIVI_by_col=semi_by_col, SIVI_layer_size=SIVI_layer_size, SIVI_input_dim=SIVI_input_dim, semi_unit= semi_unit, droprate= droprate, local_rep= local_rep).cuda()
-Appr = appr(model, optim= optim, nosample= nosample, test_sample= test_sample, nepochs= nepochs, sbatch= sbatch, lr=lr, lr_min=lr_min, lr_factor=lr_factor, lr_patience=lr_patience)
+Appr = appr(model, optim= optim, train_sample= train_sample, test_sample= test_sample, w_sample= w_sample, nepochs= nepochs, sbatch= sbatch, lr=lr, lr_min=lr_min, lr_factor=lr_factor, lr_patience=lr_patience)
 
 #report model info
 print_model_report(model)
@@ -123,7 +124,7 @@ for name, param in model.named_parameters():
         print("\t"+ name)
 print('\tTotal: '+ str(cnt_param))
 print('-'*200)
-print("Approach parameters: optim ={}, nosample= {}, test_sample= {}, nepochs= {}, sbatch= {}, lr= {}".format(optim, nosample, test_sample, nepochs, sbatch, lr), end='\n')
+print("Approach parameters: optim ={}, train_sample= {}, test_sample= {}, w_sample= {}, nepochs= {}, sbatch= {}, lr= {}".format(optim, train_sample, test_sample, w_sample, nepochs, sbatch, lr), end='\n')
 print("Model parameters: hid_layer= {}, prior_gmm= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, droprate= {}, local_rep= {}".format(hid_layer,prior_gmm, SIVI_layer_size, SIVI_input_dim, droprate, local_rep),end='\n')
 print("-"*200)
 ##################### TRAIN
@@ -136,5 +137,5 @@ print('TESTING')
 test_loss, test_acc = Appr.eval(xtest, ytest)
 print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '')
 f = open("result/mnist/mnist.txt", "a")
-f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, nosample={}, local_rep={}, prior_gmm={}, n_epochs= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, nosample, str(local_rep), str(prior_gmm),nepochs))
+f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, w_sample, str(local_rep), str(prior_gmm),nepochs))
 f.close()

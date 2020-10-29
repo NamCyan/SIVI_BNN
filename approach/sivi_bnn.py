@@ -13,15 +13,16 @@ from bayes_layer import SIVI_bayes_layer
 
 class Appr(object):
   
-    def __init__(self,model,optim = 'Adam', nosample=10, test_sample = 100, nepochs=100,sbatch=256,lr=0.001,lr_min=1e-6,lr_factor=3,lr_patience=5,clipgrad=100):
+    def __init__(self,model,optim = 'Adam', train_sample=10, test_sample = 10, w_sample= 10, nepochs=100,sbatch=256,lr=0.001,lr_min=1e-6,lr_factor=3,lr_patience=5,clipgrad=100):
         self.model=model
         self.model_old=model
 
 
         #file_name = log_name
         #self.logger = utils.logger(file_name=file_name, resume=False, path='./result_data/csvdata/', data_format='csv')   
-        self.nosample = nosample
+        self.train_sample = train_sample
         self.test_sample = test_sample
+        self.w_sample = w_sample
         self.nepochs = nepochs
         self.sbatch = sbatch
         self.lr = lr
@@ -83,6 +84,7 @@ class Appr(object):
                 patience -= 1
                 if patience <= 0:
                     lr /= self.lr_factor
+                    lr = self.lr_min
                     print(' lr={:.1e}'.format(lr), end='')
                     if lr < self.lr_min:
                         print()
@@ -118,10 +120,7 @@ class Appr(object):
             mini_batch_size = len(targets)
             N_M = len(r) / mini_batch_size
 
-            loss = self.model.loss_forward(images, targets, N_M, self.nosample)
-
-            #_, pred = output.max(1)
-
+            loss = self.model.loss_forward(images, targets, N_M, self.train_sample)
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -154,8 +153,8 @@ class Appr(object):
                 mini_batch_size = len(targets)
                 N_M = len(r) / mini_batch_size
 
-                loss = self.model.loss_forward(images, targets, N_M, self.test_sample)
-                output = self.model.pred_sample(images, targets, self.test_sample)
+                loss = self.model.loss_forward(images, targets, N_M, self.train_sample)
+                output = self.model.pred_sample(images, targets, self.test_sample, self.w_sample)
                 _, pred = output.max(1)
                 hits = (pred == targets).float()
 
@@ -165,29 +164,6 @@ class Appr(object):
 
         return total_loss/total_num,total_acc/total_num
 
-    # def custom_loss(self,x,y, N_M):
-    #     qw, pw, nll = 0., 0., 0.
-    #     for i in range(self.nosample):
-    #         output = F.log_softmax(self.model(x), dim=1)
-    #         nll += F.nll_loss(output, y, reduction='sum')
-    #         for _, layer in self.model.named_children():
-    #             if isinstance(layer, BayesianLinear)==False:
-    #               continue
-                
-    #             weight = layer.weight.sample()
-    #             bias = layer.bias.sample()
-
-    #             weight_mu = layer.weight_mu
-    #             weight_rho = layer.weight_rho
-    #             bias_mu = layer.bias_mu
-    #             bias_rho = layer.bias_rho
-
-    #             pw += log_prior_w(weight,self.model.prior_gmm).sum() + log_prior_w(bias,self.model.prior_gmm).sum()
-    #             qw += torch.sum(log_gauss(weight, weight_mu, weight_rho, rho=True)) \
-    #                   + torch.sum(log_gauss(bias, bias_mu, bias_rho, rho=True))
-        
-    #     loss = (N_M*nll)/self.nosample + qw - pw
-    #     return loss
 
 
 
