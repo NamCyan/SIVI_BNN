@@ -98,44 +98,47 @@ lr = 0.0001
 droprate = None
 sbatch = 256
 train_sample = 10
-test_sample = 50
-test_w_sample = 1
-SIVI_input_dim = 100
-SIVI_layer_size = 400
+test_sample = 10
+test_w_sample = 10
+SIVI_input_dim = 10
+SIVI_layer_size = 40
 
-local_rep = False
+local_rep = True
 prior_gmm = False #prior is gau mixture (True) or gau unit 0,1 (False)
 
+for lr in [0.001, 0.0001]:
 #####################init model and apply approach
-torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
-model = Net(input_dim, [hid_layer,hid_layer], output_dim, prior_gmm=prior_gmm,SIVI_by_col=semi_by_col, SIVI_layer_size=SIVI_layer_size, SIVI_input_dim=SIVI_input_dim, semi_unit= semi_unit, droprate= droprate, local_rep= local_rep).cuda()
-Appr = appr(model, optim= optim, train_sample= train_sample, test_sample= test_sample, w_sample= test_w_sample, nepochs= nepochs, sbatch= sbatch, lr=lr, lr_min=lr_min, lr_factor=lr_factor, lr_patience=lr_patience)
+    model = Net(input_dim, [hid_layer,hid_layer], output_dim, prior_gmm=prior_gmm,SIVI_by_col=semi_by_col, SIVI_layer_size=SIVI_layer_size, SIVI_input_dim=SIVI_input_dim, semi_unit= semi_unit, droprate= droprate, local_rep= local_rep).cuda()
+    Appr = appr(model, optim= optim, train_sample= train_sample, test_sample= test_sample, w_sample= test_w_sample, nepochs= nepochs, sbatch= sbatch, lr=lr, lr_min=lr_min, lr_factor=lr_factor, lr_patience=lr_patience)
 
-#report model info
-print_model_report(model)
-print_optimizer_config(Appr.optimizer)
+    #report model info
+    print_model_report(model)
+    print_optimizer_config(Appr.optimizer)
 
-print("Parameters:")
-cnt_param = 0
-for name, param in model.named_parameters():
-    if param.requires_grad:
-        cnt_param += 1
-        print("\t"+ name)
-print('\tTotal: '+ str(cnt_param))
-print('-'*200)
-print("Approach parameters: optim: (optim ={}, lr= {}), sample: (train_sample= {}, test_sample= {}, test_w_sample= {}), (nepochs= {}, sbatch= {})".format(optim, lr, train_sample, test_sample, test_w_sample, nepochs, sbatch), end='\n')
-print("Model parameters: layer_size: (hid_layer= {}, SIVI_layer_size= {}, SIVI_input_dim= {}), (prior_gmm= {}, local_rep= {}), droprate= {}".format(hid_layer, SIVI_layer_size, SIVI_input_dim, prior_gmm, local_rep, droprate),end='\n')
-print("-"*200)
-##################### TRAIN
-print('TRAINING')
-Appr.train(xtrain,ytrain,xvalid,yvalid,xtest, ytest)
+    print("Parameters:")
+    cnt_param = 0
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            cnt_param += 1
+            print("\t"+ name)
+    print('\tTotal: '+ str(cnt_param))
+    print('-'*200)
+    print("Approach parameters: optim: (optim ={}, lr= {}), sample: (train_sample= {}, test_sample= {}, test_w_sample= {}), (nepochs= {}, sbatch= {})".format(optim, lr, train_sample, test_sample, test_w_sample, nepochs, sbatch), end='\n')
+    print("Model parameters: layer_size: (hid_layer= {}, SIVI_layer_size= {}, SIVI_input_dim= {}), (prior_gmm= {}, local_rep= {}), droprate= {}".format(hid_layer, SIVI_layer_size, SIVI_input_dim, prior_gmm, local_rep, droprate),end='\n')
+    print("-"*200)
+    ##################### TRAIN
+    print('TRAINING')
+    Appr.train(xtrain,ytrain,xvalid,yvalid,xtest, ytest)
 
-print('*'*200)
-###################### TEST
-print('TESTING')
-test_loss, test_acc = Appr.eval(xtest, ytest)
-print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '')
-f = open("result/mnist/mnist.txt", "a")
-f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs))
-f.close()
+    print('*'*200)
+    ###################### TEST
+    print('TESTING')
+    train_loss, train_acc = Appr.eval(xtrain, ytrain)
+    valid_loss, valid_acc = Appr.eval(xvalid, yvalid)
+    test_loss, test_acc = Appr.eval(xtest, ytest)
+    print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '')
+    f = open("result/mnist/mnist.txt", "a")
+    f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: rain_acc= {}, valid_acc= {},test_acc= {}".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs,train_acc,valid_acc,test_acc))
+    f.close()
