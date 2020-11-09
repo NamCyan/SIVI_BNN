@@ -3,6 +3,7 @@ import numpy as np
 from utils import *
 import torch.nn.functional as F
 import time
+import csv
 import matplotlib.pyplot as plt
 from networks.SIVI_bnn_CNN import Net
 from approach.sivi_bnn_cnn import Appr as appr
@@ -97,5 +98,9 @@ for lr in [0.0001, 0.0001]:
     test_loss, test_acc = Appr.eval(xtest, ytest)
     print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '')
     f = open("result/cifar/"+ dataset+".txt", "a")
-    f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: train_acc= {}, valid_acc= {}, test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs, train_acc, valid_acc, test_acc))
+    f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, sbatch= {}, n_epochs= {}\n result: train_acc= {}, valid_acc= {}, test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),sbatch,nepochs, train_acc, valid_acc, test_acc))
     f.close()
+
+    with open("result/cifar/"+dataset+".csv", mode='a') as rs_file:
+    rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])

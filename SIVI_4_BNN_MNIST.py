@@ -3,6 +3,7 @@ import numpy as np
 from utils import *
 import torch.nn.functional as F
 import time
+import csv
 import matplotlib.pyplot as plt
 from dataloader import mnist as data
 from networks.SIVI_bnn_MNIST import Net
@@ -125,8 +126,8 @@ for lr in [0.001, 0.0001]:
             print("\t"+ name)
     print('\tTotal: '+ str(cnt_param))
     print('-'*200)
-    print("Approach parameters: optim: (optim ={}, lr= {}), sample: (train_sample= {}, test_sample= {}, test_w_sample= {}), (nepochs= {}, sbatch= {})".format(optim, lr, train_sample, test_sample, test_w_sample, nepochs, sbatch), end='\n')
-    print("Model parameters: layer_size: (hid_layer= {}, SIVI_layer_size= {}, SIVI_input_dim= {}), (prior_gmm= {}, local_rep= {}), droprate= {}".format(hid_layer, SIVI_layer_size, SIVI_input_dim, prior_gmm, local_rep, droprate),end='\n')
+    print("Approach parameters: \n\toptim= {} \n\tlr= {} \n\ttrain_sample= {} \n\ttest_sample= {} \n\ttest_w_sample= {} \n\tnepochs= {} \n\tsbatch= {}".format(optim, lr, train_sample, test_sample, test_w_sample, nepochs, sbatch), end='\n')
+    print("Model parameters: \n\thid_layer= {} \n\tSIVI_layer_size= {} \n\tSIVI_input_dim= {} \n\tprior_gmm= {} \n\tlocal_rep= {} \n\tdroprate= {}".format(hid_layer, SIVI_layer_size, SIVI_input_dim, prior_gmm, local_rep, droprate),end='\n')
     print("-"*200)
     ##################### TRAIN
     print('TRAINING')
@@ -142,3 +143,7 @@ for lr in [0.001, 0.0001]:
     f = open("result/mnist/mnist.txt", "a")
     f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: rain_acc= {}, valid_acc= {},test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs,train_acc,valid_acc,test_acc))
     f.close()
+
+    with open('result/mnist/mnist.csv', mode='a') as rs_file:
+    rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])
