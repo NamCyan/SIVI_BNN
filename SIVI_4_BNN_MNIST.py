@@ -93,7 +93,7 @@ hid_layer = 400
 output_dim = 10
 
 ##########################Tune parameters
-nepochs = 800
+nepochs = 600
 lr = 0.0001
 droprate = None
 sbatch = 256
@@ -140,5 +140,5 @@ for lr in [0.001, 0.0001]:
     test_loss, test_acc = Appr.eval(xtest, ytest)
     print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '')
     f = open("result/mnist/mnist.txt", "a")
-    f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: rain_acc= {}, valid_acc= {},test_acc= {}".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs,train_acc,valid_acc,test_acc))
+    f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: rain_acc= {}, valid_acc= {},test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs,train_acc,valid_acc,test_acc))
     f.close()

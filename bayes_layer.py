@@ -101,7 +101,7 @@ class BayesianLinear(nn.Module):
 
 ################################################################################
 class SIVI_bayes_layer(nn.Module):
-    def __init__(self, in_features, out_features, prior_gmm= True, SIVI_input_dim = 10, SIVI_layer_size = 20, SIVI_by_col = True, semi_unit = False, droprate= None,ratio=0.5):
+    def __init__(self, in_features, out_features, prior_gmm= True, SIVI_input_dim = 10, SIVI_layer_size = 20, SIVI_by_col = False, semi_unit = False, droprate= None,ratio=0.5):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -144,7 +144,7 @@ class SIVI_bayes_layer(nn.Module):
         self.semi_input = Gaussian(self.semi_mu, self.semi_rho)
 
 
-    def forward(self, net_input, local_rep = True, train= True):
+    def forward(self, net_input, local_rep = True, train= True, sample= True):
         if train:
             semi_input = self.semi_input.sample()
         
@@ -217,19 +217,27 @@ class SIVI_bayes_layer(nn.Module):
     #     return wmu
 
 ################################################################################
-class VCLBayesianLinear(nn.Module):
-    def __init__(self, in_features, out_features, ratio=0.5):
-        super().__init__()
-        self.in_features = in_features
-        self.out_features = out_features
+class SIVI_BayesianConv2d(nn.Module):
+    def __init__(self, in_channels, out_channels, SIVI_input_dim,SIVI_layer_size, kernel_size,
+                 stride=1, padding=0, dilation=1, transposed= False, output_padding= 0, groups=1, bias=True, droprate= None, prior_gmm= True, ratio= 0.25):
+        super(SIVI_BayesianConv2d, self).__init__()
+        if in_channels % groups != 0:
+            raise ValueError('in_channels must be divisible by groups')
+        if out_channels % groups != 0:
+            raise ValueError('out_channels must be divisible by groups')
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = _pair(stride)
+        self.padding = _pair(padding)
+        self.dilation = _pair(dilation)
+        self.transposed = transposed
+        self.output_padding = output_padding
+        self.groups = groups
+        self.prior_gmm = prior_gmm
 
-        self.weight_mu = nn.Parameter(torch.Tensor(out_features, in_features))
-        self.bias_mu = nn.Parameter(torch.zeros(out_features))
-
-        fan_in, _ = _calculate_fan_in_and_fan_out(self.weight_mu)
-        gain = 1  # Var[w] + sigma^2 = 2/fan_in
-
-        total_var = 2 / fan_in
+        _, fan_out = _calculate_fan_in_and_fan_out(torch.Tensor(out_channels, in_channels // groups, kernel_size, kernel_size))
+        total_var = 2 / fan_out
         noise_var = total_var * ratio
         mu_var = total_var - noise_var
 
@@ -237,27 +245,46 @@ class VCLBayesianLinear(nn.Module):
         bound = math.sqrt(3.0) * mu_std
         rho_init = np.log(np.exp(noise_std) - 1)
 
-        nn.init.uniform_(self.weight_mu, -bound, bound)
+        self.SIVI= mlp.Net(SIVI_input_dim,[SIVI_layer_size,SIVI_layer_size], (in_channels // groups)*kernel_size*kernel_size + 1, droprate= droprate)
+        self.semi_mu = nn.Parameter(torch.Tensor(out_channels, SIVI_input_dim).uniform_(-bound, bound))
+        self.semi_rho = nn.Parameter(torch.Tensor(out_channels, SIVI_input_dim).uniform_(rho_init, rho_init))
 
-        self.bias_rho = nn.Parameter(torch.log(torch.Tensor([np.exp(1) - 1])) * torch.ones(out_features))
+        
+        #self.bias_rho = nn.Parameter(torch.Tensor(out_channels).uniform_(0, 0), requires_grad=bias)
+        self.weight_rho = nn.Parameter(torch.Tensor(out_channels, (in_channels // groups)*kernel_size*kernel_size + 1).uniform_(rho_init, rho_init))
+        self.semi_input = Gaussian(self.semi_mu, self.semi_rho)
+    
+    def forward(self, net_input, sample= True, train= True):
+        if train:
+            semi_input = self.semi_input.sample()
+    
+            self.weight_mu = self.SIVI(semi_input)
 
-        nn.init.uniform_(self.weight_mu, -bound, bound)
-        # self.bias = nn.Parameter(torch.Tensor(out_features).uniform_(0,0))
+        self.weight_n_bias = Gaussian(self.weight_mu, self.weight_rho).sample()
+        weight = self.weight_n_bias[:,0:-1].reshape(self.out_channels, self.in_channels // self.groups, self.kernel_size, self.kernel_size)
+        bias = self.weight_n_bias[:,-1]
 
-        self.weight_rho = nn.Parameter(torch.Tensor(out_features, in_features).uniform_(rho_init, rho_init))
+        return F.conv2d(net_input, weight, bias, self.stride, self.padding, self.dilation, self.groups)
 
-        self.weight = Gaussian(self.weight_mu, self.weight_rho)
-        self.bias = Gaussian(self.bias_mu, self.bias_rho)
+    def get_log_pw(self):
+        return torch.sum(log_prior_w(self.weight_n_bias, gmm= self.prior_gmm))
 
-    def forward(self, input, sample=False):
-        if sample:
-            weight = self.weight.sample()
-            bias = self.bias.sample()
-        else:
-            weight = self.weight.mu
-            bias = self.bias.mu
+    def get_log_qw(self, no_sample):
+        axis = 1
+        sig = torch.log1p(torch.exp(self.weight_rho))
+        
+        for i in range(no_sample):
+            if i == 0:
+                q_w = torch.sum(-0.5*(self.weight_n_bias-self.weight_mu)**2/sig**2,axis=axis, keepdim=True)
 
-        return F.linear(input, weight, bias)
+            else:
+                semi_input = self.semi_input.sample()
+                weight_mu = self.SIVI(semi_input)
+
+                q_w = torch.cat((q_w, torch.sum(-0.5*(self.weight_n_bias - weight_mu) ** 2 / sig ** 2, axis=axis, keepdim=True)), axis=axis)
+        
+        log_q_w = (torch.logsumexp(q_w,dim=axis)).sum() - torch.log(sig).sum() - (0.5*sig.size()[-axis]*np.log(2*np.pi) + np.log(no_sample))*sig.size()[axis-1]
+        return log_q_w
 
 ################################################################################
 class _BayesianConvNd(nn.Module):
@@ -289,6 +316,7 @@ class _BayesianConvNd(nn.Module):
         bound = math.sqrt(3.0) * mu_std
         rho_init = np.log(np.exp(noise_std) - 1)
 
+
         nn.init.uniform_(self.weight_mu, -bound, bound)
         self.bias = nn.Parameter(torch.Tensor(out_channels).uniform_(0, 0), requires_grad=bias)
 
@@ -306,7 +334,6 @@ class BayesianConv2D(_BayesianConvNd):
         dilation = _pair(dilation)
         super(BayesianConv2D, self).__init__(in_channels, out_channels, kernel_size,
                                              stride, padding, dilation, False, _pair(0), groups, bias, ratio)
-
     def forward(self, input, sample=False):
         if sample:
             weight = self.weight.sample()
