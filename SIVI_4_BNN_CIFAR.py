@@ -47,19 +47,21 @@ yvalid = dat['valid']['y'].cuda()
 xtest = dat['test']['x'].cuda()
 ytest = dat['test']['y'].cuda()
 
-print(xvalid.shape, yvalid.shape)
+print("Train: "+ str(xtrain.shape))
+print("Valid: "+ str(xvalid.shape))
+print("Test: "+ str(xtest.shape))
 print('Done!')
 print('\n'+ '*'*200)
 
 
 ##########################Tune parameters
-nepochs = 600
+nepochs = 400
 lr = 0.0001
 droprate = None
 sbatch = 256
 train_sample = 10
 test_sample = 10
-test_w_sample = 2
+test_w_sample = 1
 SIVI_input_dim = 100
 SIVI_layer_size = 400
 
@@ -93,14 +95,14 @@ for lr in [0.0001, 0.0001]:
     print('*'*200)
     ###################### TEST
     print('TESTING')
-    train_loss, train_acc = Appr.eval(xtrain, ytrain)
-    valid_loss, valid_acc = Appr.eval(xvalid, yvalid)
-    test_loss, test_acc = Appr.eval(xtest, ytest)
+    train_loss, train_acc = Appr.eval(xtrain, ytrain, test= True)
+    valid_loss, valid_acc = Appr.eval(xvalid, yvalid, test= True)
+    test_loss, test_acc = Appr.eval(xtest, ytest, test= True)
     print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '')
     f = open("result/cifar/"+ dataset+".txt", "a")
     f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, sbatch= {}, n_epochs= {}\n result: train_acc= {}, valid_acc= {}, test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),sbatch,nepochs, train_acc, valid_acc, test_acc))
     f.close()
 
     with open("result/cifar/"+dataset+".csv", mode='a') as rs_file:
-    rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])
+        rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])

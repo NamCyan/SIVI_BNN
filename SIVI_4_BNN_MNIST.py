@@ -6,10 +6,14 @@ import time
 import csv
 import matplotlib.pyplot as plt
 from dataloader import mnist as data
-from networks.SIVI_bnn_MNIST import Net
 from approach.sivi_bnn_mnist import Appr as appr
 
 
+cnn = False
+if cnn:
+    from networks.SIVI_bnn_CNN_MNIST import Net
+else:
+    from networks.SIVI_bnn_MNIST import Net
 
 ##################init
 """
@@ -76,7 +80,7 @@ semi_by_col = False #if true: semi followed by cols else followed by rows
 print("Load data...")
 print('MNIST DATASET')
 
-dat, input_dim = data.get() #read data
+dat, input_dim, output_dim = data.get() #read data
 xtrain = dat['train']['x'].cuda()
 ytrain = dat['train']['y'].cuda()
 
@@ -86,12 +90,13 @@ yvalid = dat['valid']['y'].cuda()
 xtest = dat['test']['x'].cuda()
 ytest = dat['test']['y'].cuda()
 
-print(xvalid.shape, yvalid.shape)
+print("Train: "+ str(xtrain.shape))
+print("Valid: "+ str(xvalid.shape))
+print("Test: "+ str(xtest.shape))
 print('Done!')
 print('\n'+ '*'*200)
 
 hid_layer = 400
-output_dim = 10
 
 ##########################Tune parameters
 nepochs = 600
@@ -99,19 +104,22 @@ lr = 0.0001
 droprate = None
 sbatch = 256
 train_sample = 10
-test_sample = 10
-test_w_sample = 10
-SIVI_input_dim = 10
-SIVI_layer_size = 40
+test_sample = 50
+test_w_sample = 1
+SIVI_input_dim = 100
+SIVI_layer_size = 400
 
-local_rep = True
+local_rep = False
 prior_gmm = False #prior is gau mixture (True) or gau unit 0,1 (False)
 
-for lr in [0.001, 0.0001]:
+for lr in [0.0001]:
 #####################init model and apply approach
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    if cnn:
+        model = Net(input_dim, output_dim, prior_gmm=prior_gmm, SIVI_layer_size=SIVI_layer_size, SIVI_input_dim=SIVI_input_dim, droprate= droprate, local_rep= local_rep).cuda()
+    else:
+        model = Net(input_dim, [hid_layer,hid_layer], output_dim, prior_gmm=prior_gmm,SIVI_by_col=semi_by_col, SIVI_layer_size=SIVI_layer_size, SIVI_input_dim=SIVI_input_dim, semi_unit= semi_unit, droprate= droprate, local_rep= local_rep).cuda()
 
-    model = Net(input_dim, [hid_layer,hid_layer], output_dim, prior_gmm=prior_gmm,SIVI_by_col=semi_by_col, SIVI_layer_size=SIVI_layer_size, SIVI_input_dim=SIVI_input_dim, semi_unit= semi_unit, droprate= droprate, local_rep= local_rep).cuda()
     Appr = appr(model, optim= optim, train_sample= train_sample, test_sample= test_sample, w_sample= test_w_sample, nepochs= nepochs, sbatch= sbatch, lr=lr, lr_min=lr_min, lr_factor=lr_factor, lr_patience=lr_patience)
 
     #report model info
@@ -136,14 +144,22 @@ for lr in [0.001, 0.0001]:
     print('*'*200)
     ###################### TEST
     print('TESTING')
-    train_loss, train_acc = Appr.eval(xtrain, ytrain)
-    valid_loss, valid_acc = Appr.eval(xvalid, yvalid)
-    test_loss, test_acc = Appr.eval(xtest, ytest)
-    print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '')
-    f = open("result/mnist/mnist.txt", "a")
-    f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: rain_acc= {}, valid_acc= {},test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs,train_acc,valid_acc,test_acc))
-    f.close()
+    train_loss, train_acc = Appr.eval(xtrain, ytrain, test= True)
+    valid_loss, valid_acc = Appr.eval(xvalid, yvalid, test= True)
+    test_loss, test_acc = Appr.eval(xtest, ytest, test= True)
+    print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '\n')
 
-    with open('result/mnist/mnist.csv', mode='a') as rs_file:
-    rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])
+    if cnn:
+        f = open("result/mnist/mnist_cnn.txt", "a")
+        f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: rain_acc= {}, valid_acc= {},test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs,train_acc,valid_acc,test_acc))
+        f.close()
+        with open('result/mnist/mnist_cnn.csv', mode='a') as rs_file:
+            rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])
+    else:
+        f = open("result/mnist/mnist.txt", "a")
+        f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: rain_acc= {}, valid_acc= {},test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs,train_acc,valid_acc,test_acc))
+        f.close()
+        with open('result/mnist/mnist.csv', mode='a') as rs_file:
+            rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])

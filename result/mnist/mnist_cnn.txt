@@ -1,0 +1,2 @@
+*Tune parameters: droprate= None, lr= 0.001, SIVI_layer_size= 40, SIVI_input_dim= 10, sbatch= 256, train_sample=10, test_sample= 10, test_w_sample= 1, local_rep=True, prior_gmm=False, n_epochs= 600
+ result: rain_acc= 0.99384, valid_acc= 0.9874,test_acc= 0.9898

@@ -43,4 +43,4 @@ def get(seed=0, fixed_order=False, pc_valid=0, tasknum=10):
 
 
 
-    return data, 28*28
+    return data, size, 10

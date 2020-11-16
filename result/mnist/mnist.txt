@@ -1,0 +1,6 @@
+*Tune parameters: droprate= None, lr= 0.0001, SIVI_layer_size= 400, SIVI_input_dim= 100, sbatch= 256, train_sample=10, test_sample= 10, test_w_sample= 1, local_rep=False, prior_gmm=False, n_epochs= 600
+ result: rain_acc= 0.99384, valid_acc= 0.9774,test_acc= 0.9761
+*Tune parameters: droprate= None, lr= 0.0001, SIVI_layer_size= 400, SIVI_input_dim= 100, sbatch= 256, train_sample=10, test_sample= 10, test_w_sample= 1, local_rep=False, prior_gmm=False, n_epochs= 600
+ result: rain_acc= 0.99412, valid_acc= 0.9771,test_acc= 0.9764
+*Tune parameters: droprate= None, lr= 0.0001, SIVI_layer_size= 400, SIVI_input_dim= 100, sbatch= 256, train_sample=10, test_sample= 50, test_w_sample= 1, local_rep=False, prior_gmm=False, n_epochs= 600
+ result: rain_acc= 0.9921, valid_acc= 0.9759,test_acc= 0.975

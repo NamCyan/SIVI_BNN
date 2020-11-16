@@ -8,9 +8,6 @@ sys.path.append('..')
 import torch.nn.functional as F
 import torch.nn as nn
 
-from networks.mlp_bnn import Net
-from bayes_layer import BayesianLinear
-
 class Appr(object):
   
     def __init__(self, model, optim = 'Adam', nosample=2, test_sample=10, nepochs=100, sbatch=256, lr=0.001, lr_min=1e-6, lr_factor=3, lr_patience=5, clipgrad=100):
@@ -45,8 +42,9 @@ class Appr(object):
         if self.optim == 'Adam':
             return torch.optim.Adam(self.model.parameters(), lr=lr)
 
-    def train(self, xtrain, ytrain, xvalid, yvalid):
+    def train(self, xtrain, ytrain, xvalid, yvalid, xtest, ytest):
         best_loss = np.inf
+        best_acc = -np.inf
         best_model = utils.get_model(self.model)
         lr = self.lr
         patience = self.lr_patience
@@ -71,14 +69,18 @@ class Appr(object):
             # Valid
             valid_loss,valid_acc=self.eval(xvalid,yvalid)
             print(' Valid: loss={:.3f}, acc={:.3f}% |'.format(valid_loss,100*valid_acc),end='')
-            
+            test_loss,test_acc=self.eval(xtest,ytest)
+            print(' Test: acc={:.3f}% |'.format(100*test_acc),end='')
             #save log for current task & old tasks at every epoch
             #self.logger.add(epoch=(t*self.nepochs)+e, task_num=t+1, valid_loss=valid_loss, valid_acc=valid_acc)
             
             # Adapt lr
+            if valid_acc > best_acc:
+                best_acc = valid_acc
+                best_model = utils.get_model(self.model)
+
             if valid_loss < best_loss:
                 best_loss = valid_loss
-                best_model = utils.get_model(self.model)
                 patience = self.lr_patience
                 print(' *', end='')
             

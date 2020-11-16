@@ -100,6 +100,64 @@ class BayesianLinear(nn.Module):
         return F.linear(input, weight, bias)
 
 ################################################################################
+class BayesianConv2d(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size,
+                 stride=1, padding=0, dilation=1, transposed= False, output_padding= 0, groups=1, bias=True, prior_gmm= True, pi = 0.5,  sig_gau1=1, sig_gau2=np.exp(-6), ratio= 0.25):
+        super(BayesianConv2d, self).__init__()
+        if in_channels % groups != 0:
+            raise ValueError('in_channels must be divisible by groups')
+        if out_channels % groups != 0:
+            raise ValueError('out_channels must be divisible by groups')
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = _pair(stride)
+        self.padding = _pair(padding)
+        self.dilation = _pair(dilation)
+        self.transposed = transposed
+        self.output_padding = output_padding
+        self.groups = groups
+        self.prior_gmm = prior_gmm
+
+        self.pi = pi
+        self.sig_gau1 = sig_gau1
+        self.sig_gau2 = sig_gau2
+
+        self.p_w = 0
+        self.q_w = 0
+
+        _, fan_out = _calculate_fan_in_and_fan_out(torch.Tensor(out_channels, in_channels // groups, kernel_size, kernel_size))
+        total_var = 2 / fan_out
+        noise_var = total_var * ratio
+        mu_var = total_var - noise_var
+
+        noise_std, mu_std = math.sqrt(noise_var), math.sqrt(mu_var)
+        bound = math.sqrt(3.0) * mu_std
+        rho_init = np.log(np.exp(noise_std) - 1)
+        
+        #self.bias_rho = nn.Parameter(torch.Tensor(out_channels).uniform_(0, 0), requires_grad=bias)
+        self.weight_rho = nn.Parameter(torch.Tensor(out_channels, (in_channels // groups)*kernel_size*kernel_size + 1).uniform_(rho_init, rho_init))
+        self.weight_mu = nn.Parameter(torch.Tensor(out_channels, (in_channels // groups)*kernel_size*kernel_size + 1).uniform_(-bound, bound))
+        
+    def forward(self, net_input, sample= True):
+        if sample:
+            self.weight_n_bias = Gaussian(self.weight_mu, self.weight_rho).sample()
+        else:
+            self.weight_n_bias = self.weight_mu
+
+        weight = self.weight_n_bias[:,0:-1].reshape(self.out_channels, self.in_channels // self.groups, self.kernel_size, self.kernel_size)
+        bias = self.weight_n_bias[:,-1]
+
+        pi = self.pi
+        sig_gau1 = self.sig_gau1
+        sig_gau2 = self.sig_gau2
+
+        self.p_w = log_prior_w(self.weight_n_bias,Pi= pi, sigma1= sig_gau1, sigma2= sig_gau2 ,gmm= self.prior_gmm).sum()
+        self.q_w = log_gauss(self.weight_n_bias, self.weight_mu, self.weight_rho, rho=True).sum()
+
+        return F.conv2d(net_input, weight, bias, self.stride, self.padding, self.dilation, self.groups)
+
+################################################################################
 class SIVI_bayes_layer(nn.Module):
     def __init__(self, in_features, out_features, prior_gmm= True, SIVI_input_dim = 10, SIVI_layer_size = 20, SIVI_by_col = False, semi_unit = False, droprate= None,ratio=0.5):
         super().__init__()
@@ -183,25 +241,43 @@ class SIVI_bayes_layer(nn.Module):
         axis = 1
         if self.SIVI_by_col:
             axis = 0
-
+        
         sig = torch.log1p(torch.exp(self.weight_rho))
+        N, M = sig.shape
+
+        semi_input = torch.empty((0,))
+        sigma = torch.cat([sig]*no_sample,0)
+        weight = torch.cat([self.weight_n_bias]*no_sample,0)
+
+        for i in range(no_sample-1):
+            semi_input = torch.cat([semi_input,self.semi_input.sample()],0)
+
+        weight_mu = self.SIVI(semi_input)
+        weight_mu = torch.cat([self.weight_mu,weight_mu],0)
+ 
+        q_w = torch.sum(-0.5*(weight-weight_mu)**2/sigma**2,axis=axis, keepdim=True)
+        q_w = q_w.reshape(no_sample,self.weight_mu.shape[0])
         
-        for i in range(no_sample):
-            if i == 0:
-                q_w = torch.sum(-0.5*(self.weight_n_bias-self.weight_mu)**2/sig**2,axis=axis, keepdim=True)
-
-            else:
-                semi_input = self.semi_input.sample()
-
-                if self.SIVI_by_col:
-                    weight_mu = torch.transpose(self.SIVI(semi_input),0,1)
-                else:
-                    weight_mu = self.SIVI(semi_input)
-
-                q_w = torch.cat((q_w, torch.sum(-0.5*(self.weight_n_bias - weight_mu) ** 2 / sig ** 2, axis=axis, keepdim=True)), axis=axis)
-        
-        log_q_w = (torch.logsumexp(q_w,dim=axis)).sum() - torch.log(sig).sum() - (0.5*sig.size()[-axis]*np.log(2*np.pi) + np.log(no_sample))*sig.size()[axis-1]
+        log_q_w = (torch.logsumexp(q_w,0)).sum() - torch.log(sig).sum() - (0.5*M*np.log(2*np.pi) + np.log(no_sample))*N
         return log_q_w
+
+            
+        # for i in range(no_sample):
+        #     if i == 0:
+        #         q_w = torch.sum(-0.5*(self.weight_n_bias-self.weight_mu)**2/sig**2,axis=axis, keepdim=True)
+
+        #     else:
+        #         semi_input = self.semi_input.sample()
+
+        #         if self.SIVI_by_col:
+        #             weight_mu = torch.transpose(self.SIVI(semi_input),0,1)
+        #         else:
+        #             weight_mu = self.SIVI(semi_input)
+
+        #         q_w = torch.cat((q_w, torch.sum(-0.5*(self.weight_n_bias - weight_mu) ** 2 / sig ** 2, axis=axis, keepdim=True)), axis=axis)
+        
+        # log_q_w = (torch.logsumexp(q_w,dim=axis)).sum() - torch.log(sig).sum() - (0.5*sig.size()[-axis]*np.log(2*np.pi) + np.log(no_sample))*sig.size()[axis-1]
+        # return log_q_w
 
     # def sample_wmu(self, no_sample):
     #     wmu = []
@@ -271,20 +347,38 @@ class SIVI_BayesianConv2d(nn.Module):
 
     def get_log_qw(self, no_sample):
         axis = 1
+
         sig = torch.log1p(torch.exp(self.weight_rho))
-        
-        for i in range(no_sample):
-            if i == 0:
-                q_w = torch.sum(-0.5*(self.weight_n_bias-self.weight_mu)**2/sig**2,axis=axis, keepdim=True)
+        N, M = sig.shape
 
-            else:
-                semi_input = self.semi_input.sample()
-                weight_mu = self.SIVI(semi_input)
-
-                q_w = torch.cat((q_w, torch.sum(-0.5*(self.weight_n_bias - weight_mu) ** 2 / sig ** 2, axis=axis, keepdim=True)), axis=axis)
+        sigma = torch.cat([sig]*no_sample,0)
+        weight = torch.cat([self.weight_n_bias]*no_sample,0)
         
-        log_q_w = (torch.logsumexp(q_w,dim=axis)).sum() - torch.log(sig).sum() - (0.5*sig.size()[-axis]*np.log(2*np.pi) + np.log(no_sample))*sig.size()[axis-1]
+        semi_input = torch.empty((0,))
+        for i in range(no_sample-1):
+            semi_input = torch.cat([semi_input,self.semi_input.sample()],0)
+
+        weight_mu = self.SIVI(semi_input)
+        weight_mu = torch.cat([self.weight_mu,weight_mu],0)
+ 
+        q_w = torch.sum(-0.5*(weight-weight_mu)**2/sigma**2,axis=axis, keepdim=True)
+        q_w = q_w.reshape(no_sample,self.weight_mu.shape[0])
+        
+        log_q_w = (torch.logsumexp(q_w,0)).sum() - torch.log(sig).sum() - (0.5*M*np.log(2*np.pi) + np.log(no_sample))*N
         return log_q_w
+
+        # for i in range(no_sample):
+        #     if i == 0:
+        #         q_w = torch.sum(-0.5*(self.weight_n_bias-self.weight_mu)**2/sig**2,axis=axis, keepdim=True)
+
+        #     else:
+        #         semi_input = self.semi_input.sample()
+        #         weight_mu = self.SIVI(semi_input)
+
+        #         q_w = torch.cat((q_w, torch.sum(-0.5*(self.weight_n_bias - weight_mu) ** 2 / sig ** 2, axis=axis, keepdim=True)), axis=axis)
+        
+        # log_q_w = (torch.logsumexp(q_w,dim=axis)).sum() - torch.log(sig).sum() - (0.5*sig.size()[-axis]*np.log(2*np.pi) + np.log(no_sample))*sig.size()[axis-1]
+        # return log_q_w
 
 ################################################################################
 class _BayesianConvNd(nn.Module):
@@ -325,20 +419,20 @@ class _BayesianConvNd(nn.Module):
         self.weight = Gaussian(self.weight_mu, self.weight_rho)
 
 ################################################################################
-class BayesianConv2D(_BayesianConvNd):
-    def __init__(self, in_channels, out_channels, kernel_size,
-                 stride=1, padding=0, dilation=1, groups=1, bias=True, ratio=0.25):
-        kernel_size = _pair(kernel_size)
-        stride = _pair(stride)
-        padding = _pair(padding)
-        dilation = _pair(dilation)
-        super(BayesianConv2D, self).__init__(in_channels, out_channels, kernel_size,
-                                             stride, padding, dilation, False, _pair(0), groups, bias, ratio)
-    def forward(self, input, sample=False):
-        if sample:
-            weight = self.weight.sample()
+# class BayesianConv2D(_BayesianConvNd):
+#     def __init__(self, in_channels, out_channels, kernel_size,
+#                  stride=1, padding=0, dilation=1, groups=1, bias=True, ratio=0.25):
+#         kernel_size = _pair(kernel_size)
+#         stride = _pair(stride)
+#         padding = _pair(padding)
+#         dilation = _pair(dilation)
+#         super(BayesianConv2D, self).__init__(in_channels, out_channels, kernel_size,
+#                                              stride, padding, dilation, False, _pair(0), groups, bias, ratio)
+#     def forward(self, input, sample=False):
+#         if sample:
+#             weight = self.weight.sample()
 
-        else:
-            weight = self.weight.mu
+#         else:
+#             weight = self.weight.mu
 
-        return F.conv2d(input, weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+#         return F.conv2d(input, weight, self.bias, self.stride, self.padding, self.dilation, self.groups)

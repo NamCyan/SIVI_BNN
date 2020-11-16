@@ -7,8 +7,8 @@ class Net(torch.nn.Module):
         super(Net, self).__init__()
         self.outputdim = outputdim
         hid1, hid2 = layer_size
-      
-        self.fc1 = BayesianLinear(inputdim, hid1, prior_gmm= prior_gmm, pi= pi, sig_gau1=sig_gau1, sig_gau2=sig_gau2,ratio=ratio)
+        ncha, size, _ =inputdim
+        self.fc1 = BayesianLinear(size*size, hid1, prior_gmm= prior_gmm, pi= pi, sig_gau1=sig_gau1, sig_gau2=sig_gau2,ratio=ratio)
         self.fc2 = BayesianLinear(hid1, hid2, prior_gmm= prior_gmm, pi= pi, sig_gau1=sig_gau1, sig_gau2=sig_gau2, ratio=ratio)
         self.fc3 = BayesianLinear(hid2, outputdim, prior_gmm= prior_gmm, pi= pi, sig_gau1=sig_gau1, sig_gau2=sig_gau2, ratio=ratio)
         self.relu = torch.nn.ReLU()

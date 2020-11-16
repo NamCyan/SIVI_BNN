@@ -1,0 +1,2 @@
+droprate,lr,SIVI_layer_size,SIVI_input_dim,train_sample,test_sample,test_w_sample,local_rep,prior_gmm,nepochs,sbatch,train_acc,valid_acc,test_acc
+None,0.001,40,10,10,10,1,True,False,600,256,0.99384,0.9874,0.9898

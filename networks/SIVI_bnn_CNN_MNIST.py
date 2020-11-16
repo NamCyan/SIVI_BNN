@@ -17,23 +17,16 @@ class Net(nn.Module):
         self.output_dim = output_dim
         
         ncha,size,_=inputsize
-        d1, d2, d3 = 128, 256, 512
+        d1, d2 = 32, 128
         self.conv1 = SIVI_BayesianConv2d(ncha,d1, kernel_size=7, padding=0, SIVI_input_dim= SIVI_input_dim, SIVI_layer_size = SIVI_layer_size, prior_gmm= prior_gmm, droprate= droprate, ratio=ratio)
         #self.bn1 = torch.nn.BatchNorm2d(d1)
-        s = compute_conv_output_size(size,7, padding=0) # 128,26,26
-        s = s//2 # 13
+        s = compute_conv_output_size(size,7, padding=0) # 32,22,22
+        s = s//2 # 11
         self.conv2 = SIVI_BayesianConv2d(d1,d2,kernel_size=5, padding=0, SIVI_input_dim= SIVI_input_dim, SIVI_layer_size = SIVI_layer_size, prior_gmm= prior_gmm, droprate= droprate, ratio=ratio)
         #self.bn2 = torch.nn.BatchNorm2d(d2)
-        s = compute_conv_output_size(s,5, padding=0) # 256,9,9
-        self.conv3 = SIVI_BayesianConv2d(d2,d2,kernel_size=5, padding=0, SIVI_input_dim= SIVI_input_dim, SIVI_layer_size = SIVI_layer_size, prior_gmm= prior_gmm, droprate= droprate, ratio=ratio)
-        #self.bn3 = torch.nn.BatchNorm2d(d2)
-        s = compute_conv_output_size(s,5, padding=0) # 256,5,5
-        # self.conv4 = SIVI_BayesianConv2d(d2,d3,kernel_size=5, padding=0, SIVI_input_dim= SIVI_input_dim, SIVI_layer_size = SIVI_layer_size, prior_gmm= prior_gmm, droprate= droprate, ratio = ratio)
-        # self.bn4 = torch.nn.BatchNorm2d(d3)
-        # s = compute_conv_output_size(s,5, padding=0) # 512,1,1
-        
-        self.bfc1= SIVI_bayes_layer(s*s*d2,d3, SIVI_input_dim= SIVI_input_dim, SIVI_layer_size = SIVI_layer_size, prior_gmm= prior_gmm, droprate= droprate, ratio = ratio)
-        self.last= SIVI_bayes_layer(d3,output_dim, SIVI_input_dim= SIVI_input_dim, SIVI_layer_size = SIVI_layer_size, prior_gmm= prior_gmm, droprate= droprate, ratio = ratio)
+        s = compute_conv_output_size(s,5, padding=0) # 128,7,7
+        s = s//2 # 3
+        self.bfc1= SIVI_bayes_layer(s*s*d2,output_dim, SIVI_input_dim= SIVI_input_dim, SIVI_layer_size = SIVI_layer_size, prior_gmm= prior_gmm, droprate= droprate, ratio = ratio)
 
         self.MaxPool = torch.nn.MaxPool2d(2)  
         self.lrelu = torch.nn.LeakyReLU()
@@ -42,11 +35,9 @@ class Net(nn.Module):
         h= self.lrelu(self.conv1(x, sample=sample, train= train))
         h= self.MaxPool(h)
         h= self.lrelu(self.conv2(h, sample=sample, train= train))
-        h= self.lrelu(self.conv3(h, sample=sample, train= train))
-        #h= self.lrelu(self.bn4(self.conv4(h, sample=sample, train= train)))
+        h= self.MaxPool(h)
         h=h.view(x.size(0),-1)
-        h= self.lrelu(self.bfc1(h, local_rep=self.local_rep, sample=sample, train= train))
-        y= self.last(h, local_rep=self.local_rep, sample=sample, train= train)
+        y = self.bfc1(h, local_rep=self.local_rep, sample=sample, train= train)
         
         return y
 
@@ -131,7 +122,7 @@ class Net(nn.Module):
     def pred_sample(self, x, y, semi_sample, w_sample, test= False):
         if not test:
             semi_sample, w_sample = 1, 1
-            
+
         out = torch.zeros([len(x),self.output_dim])
   
         for i in range(semi_sample):

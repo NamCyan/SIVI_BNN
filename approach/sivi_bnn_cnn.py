@@ -63,12 +63,12 @@ class Appr(object):
             
             self.train_epoch(xtrain,ytrain)
             
-            clock1=time.time()
-            train_loss,train_acc=self.eval(xtrain,ytrain)
-            clock2=time.time()
-            print('| Epoch {:3d}, time={:5.1f}ms/{:5.1f}ms | Train: loss={:.3f}, acc={:5.1f}% |'.format(
-                e+1,1000*self.sbatch*(clock1-clock0)/num_batch,
-                1000*self.sbatch*(clock2-clock1)/num_batch,train_loss,100*train_acc),end='')
+            # clock1=time.time()
+            # train_loss,train_acc=self.eval(xtrain,ytrain)
+            # clock2=time.time()
+            # print('| Epoch {:3d}, time={:5.1f}ms/{:5.1f}ms | Train: loss={:.3f}, acc={:5.1f}% |'.format(
+            #     e+1,1000*self.sbatch*(clock1-clock0)/num_batch,
+            #     1000*self.sbatch*(clock2-clock1)/num_batch,train_loss,100*train_acc),end='')
             # Valid
             valid_loss,valid_acc=self.eval(xvalid,yvalid)
             print(' Valid: loss={:.3f}, acc={:5.1f}% |'.format(valid_loss,100*valid_acc),end='')
@@ -135,7 +135,7 @@ class Appr(object):
 
         return
 
-    def eval(self,x,y):
+    def eval(self,x,y, test= False):
         total_loss=0
         total_acc=0
         total_num=0
@@ -159,7 +159,7 @@ class Appr(object):
                 N_M = len(r) / mini_batch_size
 
                 loss = self.model.loss_forward(images, targets, N_M, self.test_sample*self.w_sample)
-                output = self.model.pred_sample(images, targets, self.test_sample, self.w_sample)
+                output = self.model.pred_sample(images, targets, self.test_sample, self.w_sample, test= test)
                 _, pred = output.max(1)
                 hits = (pred == targets).float()
 

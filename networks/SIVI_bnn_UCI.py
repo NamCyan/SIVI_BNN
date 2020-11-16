@@ -43,11 +43,13 @@ class Net(torch.nn.Module):
         log_qw = self.fc1.get_log_qw(no_sample) + self.fc2.get_log_qw(no_sample)
         return log_qw
 
-    def pred_sample(self, x, y, semi_sample, w_sample, normalization_info):
+    def pred_sample(self, x, y, semi_sample, w_sample, normalization_info, test= False):
         #semi_sample: số lượng lấy mẫu input của mạng SIVI
         #w_sample: số lượng lấy mẫu weight cho từng sample của SIVI
         #ví dụ semi_sample= 10, w_sample= 10 => sample 100 weight
-      
+        if not test:
+            semi_sample, w_sample = 1, 1
+            
         output_mean = normalization_info['output mean'].cuda()
         output_std = normalization_info['output std'].cuda()
         
