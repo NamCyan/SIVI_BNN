@@ -65,24 +65,26 @@ class Appr(object):
             self.train_epoch(xtrain,ytrain)
             
             clock1=time.time()
-            train_loss,train_rmse, train_llh=self.eval(xtrain,ytrain,normalization_info)
-            clock2=time.time()
-            print('| Epoch {:3d}, time={:5.1f}ms/{:5.1f}ms | Train: loss={:.3f}, rmse={:.3f}, llh = {:.3f} |'.format(
-                e+1,1000*self.sbatch*(clock1-clock0)/num_batch,
-                1000*self.sbatch*(clock2-clock1)/num_batch,train_loss,train_rmse, train_llh),end='')
+            # train_loss,train_rmse, train_llh=self.eval(xtrain,ytrain,normalization_info)
+            # clock2=time.time()
+            # print('| Epoch {:3d}, time={:5.1f}ms/{:5.1f}ms | Train: loss={:.3f}, rmse={:.3f}, llh = {:.3f} |'.format(
+            #     e+1,1000*self.sbatch*(clock1-clock0)/num_batch,
+            #     1000*self.sbatch*(clock2-clock1)/num_batch,train_loss,train_rmse, train_llh),end='')
             # Valid
             valid_loss,valid_rmse, valid_llh=self.eval(xvalid,yvalid,normalization_info)
-            print(' Valid: loss={:.3f}, rmse={:.3f}, llh={:.3f} |'.format(valid_loss,valid_rmse,valid_llh),end='')
+            clock2=time.time()
+            print('Epoch {:3d}, time={:5.1f}ms/{:5.1f}ms, Valid: loss={:.3f}, acc={:5.1f}% |'.format(e+1,1000*self.sbatch*(clock1-clock0)/num_batch,1000*self.sbatch*(clock2-clock1)/xvalid.size(0),valid_loss,100*valid_acc),end='')
             # test_loss,test_rmse,test_llh=self.eval(xtest,ytest,normalization_info)
             # print(' Test: loss= {:.3f}, rmse={:.3f}, llh={:.3f} |'.format(test_loss,test_rmse,test_llh),end='')
             self.valid_rs.append((valid_loss,valid_rmse, valid_llh))
             # Adapt lr
-            if valid_llh > best_llh:
-                best_model = utils.get_model(self.model)
-                best_llh = valid_llh
+            # if valid_llh > best_llh:
+            #     best_model = utils.get_model(self.model)
+            #     best_llh = valid_llh
 
             if valid_loss < best_loss:
                 best_loss = valid_loss
+                best_model = utils.get_model(self.model)
                 patience = self.lr_patience
                 print(' *', end='')
             

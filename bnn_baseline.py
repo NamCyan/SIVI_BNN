@@ -7,7 +7,7 @@ import numpy as np
 from approach.bnn import Appr as appr
 
 
-cnn = True
+cnn = False
 if cnn:
     from networks.baseline_cnn import Net
 else:

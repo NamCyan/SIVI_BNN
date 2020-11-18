@@ -67,7 +67,7 @@ SIVI_layer_size = 400
 
 local_rep = False
 prior_gmm = False #prior is gau mixture (True) or gau unit 0,1 (False)
-for lr in [0.0001, 0.0001]:
+for lr in [0.0001]:
 #####################init model and apply approach
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
 

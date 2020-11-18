@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-from networks import mlp
+from networks import hvi_mlp ,mlp
 from torch.nn.modules.utils import _single, _pair, _triple
 from utils import *
 
@@ -198,7 +198,9 @@ class SIVI_bayes_layer(nn.Module):
                 self.semi_mu = nn.Parameter(torch.Tensor(out_features, SIVI_input_dim).uniform_(-bound, bound))
                 self.semi_rho = nn.Parameter(torch.Tensor(out_features, SIVI_input_dim).uniform_(rho_init, rho_init))
 
-        self.weight_rho = nn.Parameter(torch.Tensor(out_features, in_features+1).uniform_(rho_init, rho_init))
+        #self.weight_rho = nn.Parameter(torch.Tensor(out_features, in_features+1).uniform_(rho_init, rho_init))
+        self.weight_rho = torch.Tensor(out_features, in_features+1).uniform_(rho_init, rho_init)
+        
         self.semi_input = Gaussian(self.semi_mu, self.semi_rho)
 
 
@@ -211,8 +213,10 @@ class SIVI_bayes_layer(nn.Module):
             else:
                 self.weight_mu = self.SIVI(semi_input)
 
-
-        self.weight_n_bias = Gaussian(self.weight_mu, self.weight_rho).sample()
+        sigma = torch.log1p(torch.exp(self.weight_rho))
+        epsilon = torch.distributions.Normal(0, sigma[0][0]).sample(self.weight_rho.size()).cuda()
+        self.weight_n_bias = self.weight_mu + epsilon
+        #self.weight_n_bias = Gaussian(self.weight_mu, self.weight_rho).sample()
         
         if local_rep:
             one = torch.ones(net_input.size()[0],1).cuda()
@@ -256,9 +260,12 @@ class SIVI_bayes_layer(nn.Module):
         weight_mu = torch.cat([self.weight_mu,weight_mu],0)
  
         q_w = torch.sum(-0.5*(weight-weight_mu)**2/sigma**2,axis=axis, keepdim=True)
+        #q_w = torch.sum(log_gauss(weight,weight_mu, sigma,rho= False),axis=axis, keepdim=True)
         q_w = q_w.reshape(no_sample,self.weight_mu.shape[0])
         
         log_q_w = (torch.logsumexp(q_w,0)).sum() - torch.log(sig).sum() - (0.5*M*np.log(2*np.pi) + np.log(no_sample))*N
+        #log_q_w = (torch.logsumexp(q_w,0)).sum() - np.log(no_sample)*N
+
         return log_q_w
 
             
@@ -436,3 +443,82 @@ class _BayesianConvNd(nn.Module):
 #             weight = self.weight.mu
 
 #         return F.conv2d(input, weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+################################################################################
+class HVI_BayesLinear(nn.Module):
+    def __init__(self, in_features, out_features, prior_gmm= True, SIVI_input_dim = 10, SIVI_layer_size = 20, SIVI_by_col= False, semi_unit= False, droprate= None,ratio=0.5):
+        super().__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.prior_gmm = prior_gmm
+
+        fan_in = in_features
+
+        total_var = 2 / fan_in
+        noise_var = total_var * ratio
+        mu_var = total_var - noise_var
+
+        noise_std, mu_std = math.sqrt(noise_var), math.sqrt(mu_var)
+        bound = math.sqrt(3.0) * mu_std
+        rho_init = np.log(np.exp(noise_std) - 1)
+
+        # bound = 0.1
+        # rho_init = -3
+        
+        self.SIVI = hvi_mlp.Net(SIVI_input_dim,[SIVI_layer_size,SIVI_layer_size], in_features+1, droprate)
+
+        self.mu_0 = nn.Parameter(torch.Tensor(out_features, SIVI_input_dim).uniform_(-bound, bound))
+        self.rho_0 = nn.Parameter(torch.Tensor(out_features, SIVI_input_dim).uniform_(rho_init, rho_init))
+
+        self.epsilon = Gaussian(self.mu_0, self.rho_0)
+
+
+    def forward(self, net_input, local_rep = True, train= True, sample= True):
+        if train:
+            self.epsilon_0 = self.epsilon.sample()
+
+            self.weight_mu, self.weight_rho = self.SIVI(self.epsilon_0 )
+
+        self.weight_n_bias = Gaussian(self.weight_mu, self.weight_rho).sample()
+        
+        if local_rep:
+            one = torch.ones(net_input.size()[0],1).cuda()
+            net_input = torch.cat([net_input,one],axis=1)
+            
+            mu_preact = torch.mm(net_input,torch.transpose(self.weight_mu,0,1))
+            weight_sigma =  torch.log1p(torch.exp(self.weight_rho))
+            sigma_preact = torch.sqrt(torch.mm(net_input**2,torch.transpose(weight_sigma,0,1)**2)+ 1e-6)
+            
+            eps = torch.distributions.Normal(0, 1).sample(mu_preact.size()).cuda()
+            out = sigma_preact*eps + mu_preact
+            
+        else:
+            weight = self.weight_n_bias[:,0:-1]
+            bias = self.weight_n_bias[:,-1]
+            out = F.linear(net_input, weight, bias)
+          
+        #self.log_p_w = torch.sum(log_prior_w(self.weight_n_bias, gmm= self.prior_gmm))
+        #self.log_q_w = self.get_log_qw()
+        return out
+
+    def get_log_pw(self):
+        return torch.sum(log_prior_w(self.weight_n_bias, gmm= self.prior_gmm))
+        
+    def get_log_qw(self, no_sample):
+        axis = 1
+
+        weight = torch.cat([self.weight_n_bias]*no_sample,0)
+        
+        epsilon = torch.empty((0,))
+        for i in range(no_sample-1):
+            epsilon = torch.cat([epsilon,self.epsilon.sample()],0)
+
+        weight_mu, weight_rho = self.SIVI(epsilon)
+        weight_mu = torch.cat([self.weight_mu,weight_mu],0)
+        weight_rho = torch.cat([self.weight_rho,weight_rho],0)
+ 
+        q_w = torch.sum(log_gauss(weight,weight_mu, weight_rho, rho= True),axis=axis, keepdim=True)
+        q_w = q_w.reshape(no_sample,self.weight_mu.shape[0])
+        
+        log_q_w = (torch.logsumexp(q_w,0)).sum() - np.log(no_sample)*self.weight_mu.shape[0]
+
+        return log_q_w

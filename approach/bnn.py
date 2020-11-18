@@ -75,12 +75,13 @@ class Appr(object):
             #self.logger.add(epoch=(t*self.nepochs)+e, task_num=t+1, valid_loss=valid_loss, valid_acc=valid_acc)
             
             # Adapt lr
-            if valid_acc > best_acc:
-                best_acc = valid_acc
-                best_model = utils.get_model(self.model)
+            # if valid_acc > best_acc:
+            #     best_acc = valid_acc
+            #     best_model = utils.get_model(self.model)
 
             if valid_loss < best_loss:
                 best_loss = valid_loss
+                best_model = utils.get_model(self.model)
                 patience = self.lr_patience
                 print(' *', end='')
             
