@@ -58,7 +58,7 @@ class Appr(object):
 
             num_batch = xtrain.size(0)
             
-            self.train_epoch(xtrain,ytrain)
+            self.train_epoch(xtrain,ytrain, train= True)
             
             clock1=time.time()
             # train_loss,train_acc=self.eval(xtrain,ytrain)
@@ -67,7 +67,7 @@ class Appr(object):
             #     e+1,1000*self.sbatch*(clock1-clock0)/num_batch,
             #     1000*self.sbatch*(clock2-clock1)/num_batch,train_loss,100*train_acc),end='')
             # Valid
-            valid_loss,valid_acc=self.eval(xvalid,yvalid)
+            valid_loss,valid_acc=self.eval(xvalid,yvalid, train= True)
             clock2 = time.time()
             print(' Epoch {:3d}, time= {:5.1f}ms/{:5.1f}ms | Valid: loss={:.3f}, acc={:.3f}% |'.format(e+1,1000*self.sbatch*(clock1-clock0)/num_batch, 1000*self.sbatch*(clock2-clock1)/xvalid.size(0), valid_loss,100*valid_acc),end='')
             test_loss,test_acc=self.eval(xtest,ytest)
@@ -103,7 +103,7 @@ class Appr(object):
         # self.logger.save()
         return
 
-    def train_epoch(self,x,y):
+    def train_epoch(self,x,y, train= True):
         self.model.train()
 
 
@@ -123,9 +123,12 @@ class Appr(object):
 
             # Forward current model
             mini_batch_size = len(targets)
-            N_M = len(r) / mini_batch_size
+            if len(r) % mini_batch_size == 0:
+                number_of_batchs = len(r) // mini_batch_size
+            else:
+                number_of_batchs = len(r) // mini_batch_size + 1
 
-            loss, out = self.model.loss_forward(images, targets, N_M, self.nosample)
+            loss, out = self.model.loss_forward(images, targets, number_of_batchs, self.nosample, i+1, train= train)
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -135,7 +138,7 @@ class Appr(object):
 
         return
 
-    def eval(self,x,y):
+    def eval(self,x,y, train= True):
         total_loss=0
         total_acc=0
         total_num=0
@@ -156,9 +159,12 @@ class Appr(object):
 
                 # Forward
                 mini_batch_size = len(targets)
-                N_M = len(r) / mini_batch_size
+                if len(r) % mini_batch_size == 0:
+                    number_of_batchs = len(r) // mini_batch_size
+                else:
+                    number_of_batchs = len(r) // mini_batch_size + 1
 
-                loss, output = self.model.loss_forward(images, targets, N_M, self.test_sample)
+                loss, output = self.model.loss_forward(images, targets, number_of_batchs, self.test_sample, i+1, train= train)
                 #output = self.model.pred_sample(images, targets, self.test_sample)
 
                 _, pred = output.max(1)

@@ -1,6 +1,7 @@
 from bayes_layer import BayesianLinear
 import torch
 import torch.nn.functional as F
+import numpy as np
 
 class Net(torch.nn.Module):
     def __init__(self, inputdim, layer_size, outputdim, re_wKL = 1, prior_gmm= True, pi= 0.5, sig_gau1=1, sig_gau2=1, sample= True, ratio=0.5):
@@ -22,9 +23,14 @@ class Net(torch.nn.Module):
         y = self.fc3(h,self.sample)
         return y
 
-    def loss_forward(self, x,y, N_M, no_sample):
+    def loss_forward(self, x,y, N_M, no_sample,mb_index,train= True):
         total_qw, total_pw, total_log_likelihood = 0., 0., 0.
+        re_wKL = self.re_wKL
         out = torch.zeros([x.shape[0],self.outputdim])
+
+        if train:
+            no_sample = 1
+            
         for i in range(no_sample):
             output = F.log_softmax(self.forward(x), dim= 1)       
             total_qw += self.get_qw()
@@ -34,16 +40,21 @@ class Net(torch.nn.Module):
         total_qw = total_qw/no_sample
         total_pw = total_pw/no_sample
         total_log_likelihood = F.nll_loss(out/no_sample, y, reduction='sum')
-        
-        loss = self.re_wKL*(total_qw - total_pw)/N_M + total_log_likelihood
+        if re_wKL == "adaptive":
+            re_wKL = np.power(2.0,N_M-mb_index) / (np.power(2.0,N_M)-1)
+            #print(re_wKL)
+        else:
+            re_wKL = re_wKL/N_M
+
+        loss = re_wKL*(total_qw - total_pw) + total_log_likelihood
         return loss, out/no_sample
 
-    def pred_sample(self, x,y, no_sample):
-        output = torch.zeros([len(x),self.outputdim])
-        for i in range(no_sample):
-            output_ = F.log_softmax(self.forward(x), dim= 1)
-            output += output_
-        return output/no_sample
+    # def pred_sample(self, x,y, no_sample):
+    #     output = torch.zeros([len(x),self.outputdim])
+    #     for i in range(no_sample):
+    #         output_ = F.log_softmax(self.forward(x), dim= 1)
+    #         output += output_
+    #     return output/no_sample
 
     def get_pw(self):
         return self.fc1.p_w + self.fc2.p_w + self.fc3.p_w

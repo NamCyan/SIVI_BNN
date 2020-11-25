@@ -37,7 +37,7 @@ optim = 'Adam'
 
 #model hyper
 hid_layer = 400
-re_wKL = 0.2
+re_wKL = "adaptive"
 prior_gmm = False
 pi = 0.25
 sig_gau1 = np.exp(0)
@@ -83,5 +83,5 @@ Appr.train(xtrain,ytrain,xvalid,yvalid,xtest,ytest)
 print('*' * 200)
 print('Tesing')
 
-test_loss, test_acc = Appr.eval(xtest, ytest)
+test_loss, test_acc = Appr.eval(xtest, ytest, train= False)
 print("Test: loss= {:.3f}, acc={:.3f}%".format(test_loss, 100 * test_acc), end='\n')
