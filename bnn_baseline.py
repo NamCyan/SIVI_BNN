@@ -37,7 +37,7 @@ optim = 'Adam'
 
 #model hyper
 hid_layer = 400
-
+re_wKL = 0.2
 prior_gmm = False
 pi = 0.25
 sig_gau1 = np.exp(0)
@@ -62,9 +62,9 @@ print('*' * 200)
 torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
 if cnn:
-    model = Net(input_dim, output_dim, prior_gmm= prior_gmm, pi= pi, sig_gau1=sig_gau1, sig_gau2=sig_gau2,sample= True).cuda()
+    model = Net(input_dim, output_dim, re_wKL= re_wKL, prior_gmm= prior_gmm, pi= pi, sig_gau1=sig_gau1, sig_gau2=sig_gau2,sample= True).cuda()
 else:
-    model = Net(input_dim, [hid_layer, hid_layer], output_dim, prior_gmm= prior_gmm, pi= pi, sig_gau1=sig_gau1, sig_gau2=sig_gau2,sample= True).cuda()
+    model = Net(input_dim, [hid_layer, hid_layer], output_dim, re_wKL= re_wKL, prior_gmm= prior_gmm, pi= pi, sig_gau1=sig_gau1, sig_gau2=sig_gau2,sample= True).cuda()
 Appr = appr(model, optim= optim, nosample= train_sample, test_sample= test_sample, nepochs= nepochs, sbatch= sbatch, lr=lr, lr_min=lr_min, lr_factor=lr_factor, lr_patience=lr_patience)
 # model info
 print_model_report(model)

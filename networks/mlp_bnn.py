@@ -3,9 +3,10 @@ import torch
 import torch.nn.functional as F
 
 class Net(torch.nn.Module):
-    def __init__(self, inputdim, layer_size, outputdim, prior_gmm= True, pi= 0.5, sig_gau1=1, sig_gau2=1,sample= True, ratio=0.5):
+    def __init__(self, inputdim, layer_size, outputdim, re_wKL = 1, prior_gmm= True, pi= 0.5, sig_gau1=1, sig_gau2=1, sample= True, ratio=0.5):
         super(Net, self).__init__()
         self.outputdim = outputdim
+        self.re_wKL = re_wKL
         hid1, hid2 = layer_size
         ncha, size, _ =inputdim
         self.fc1 = BayesianLinear(size*size, hid1, prior_gmm= prior_gmm, pi= pi, sig_gau1=sig_gau1, sig_gau2=sig_gau2,ratio=ratio)
@@ -34,7 +35,7 @@ class Net(torch.nn.Module):
         total_pw = total_pw/no_sample
         total_log_likelihood = F.nll_loss(out/no_sample, y, reduction='sum')
         
-        loss = (total_qw - total_pw)/N_M + total_log_likelihood
+        loss = self.re_wKL*(total_qw - total_pw)/N_M + total_log_likelihood
         return loss, out/no_sample
 
     def pred_sample(self, x,y, no_sample):

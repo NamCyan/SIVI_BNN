@@ -61,14 +61,15 @@ class Appr(object):
             self.train_epoch(xtrain,ytrain)
             
             clock1=time.time()
-            train_loss,train_acc=self.eval(xtrain,ytrain)
-            clock2=time.time()
-            print('| Epoch {:3d}, time={:5.1f}ms/{:5.1f}ms | Train: loss={:.3f}, acc={:.3f}% |'.format(
-                e+1,1000*self.sbatch*(clock1-clock0)/num_batch,
-                1000*self.sbatch*(clock2-clock1)/num_batch,train_loss,100*train_acc),end='')
+            # train_loss,train_acc=self.eval(xtrain,ytrain)
+            # clock2=time.time()
+            # print('| Epoch {:3d}, time={:5.1f}ms/{:5.1f}ms | Train: loss={:.3f}, acc={:.3f}% |'.format(
+            #     e+1,1000*self.sbatch*(clock1-clock0)/num_batch,
+            #     1000*self.sbatch*(clock2-clock1)/num_batch,train_loss,100*train_acc),end='')
             # Valid
             valid_loss,valid_acc=self.eval(xvalid,yvalid)
-            print(' Valid: loss={:.3f}, acc={:.3f}% |'.format(valid_loss,100*valid_acc),end='')
+            clock2 = time.time()
+            print(' Epoch {:3d}, time= {:5.1f}ms/{:5.1f}ms | Valid: loss={:.3f}, acc={:.3f}% |'.format(e+1,1000*self.sbatch*(clock1-clock0)/num_batch, 1000*self.sbatch*(clock2-clock1)/xvalid.size(0), valid_loss,100*valid_acc),end='')
             test_loss,test_acc=self.eval(xtest,ytest)
             print(' Test: acc={:.3f}% |'.format(100*test_acc),end='')
             #save log for current task & old tasks at every epoch

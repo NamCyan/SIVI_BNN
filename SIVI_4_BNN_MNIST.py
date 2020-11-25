@@ -99,14 +99,14 @@ print('\n'+ '*'*200)
 hid_layer = 400
 
 ##########################Tune parameters
-nepochs = 150
+nepochs = 600
 lr = 0.0001
 droprate = None
 sbatch = 256
 train_sample = 10
 test_sample = 20
 test_w_sample = 10
-SIVI_input_dim = 100
+SIVI_input_dim = 400
 SIVI_layer_size = 400
 
 local_rep = False
@@ -148,6 +148,9 @@ for lr in [0.0001]:
     valid_loss, valid_acc = Appr.eval(xvalid, yvalid, test= True)
     test_loss, test_acc = Appr.eval(xtest, ytest, test= True)
     print("Test: loss= {:.3f}, acc={:.3f}".format(test_loss,100*test_acc),end= '\n')
+    print(Appr.model.fc1.weight_mu, Appr.model.fc1.weight_rho)
+    print(Appr.model.fc2.weight_mu, Appr.model.fc2.weight_rho)
+    print(Appr.model.fc3.weight_mu, Appr.model.fc3.weight_rho)
 
     if cnn:
         f = open("result/mnist/mnist_cnn.txt", "a")
@@ -157,9 +160,9 @@ for lr in [0.0001]:
             rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])
     else:
-        f = open("result/mnist/mnist.txt", "a")
-        f.write("*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: train_acc= {}, valid_acc= {},test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs,train_acc,valid_acc,test_acc))
+        f = open("result/mnist/mnist_test.txt", "a")
+        f.write("Note: mu0, sig0 -> muy_w (no dnn) and prior 0,1\n*Tune parameters: droprate= {}, lr= {}, SIVI_layer_size= {}, SIVI_input_dim= {}, sbatch= {}, train_sample={}, test_sample= {}, test_w_sample= {}, local_rep={}, prior_gmm={}, n_epochs= {}\n result: train_acc= {}, valid_acc= {},test_acc= {}\n".format(droprate,lr,SIVI_layer_size, SIVI_input_dim, sbatch, train_sample, test_sample, test_w_sample, str(local_rep), str(prior_gmm),nepochs,train_acc,valid_acc,test_acc))
         f.close()
-        with open('result/mnist/mnist.csv', mode='a') as rs_file:
-            rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])
+        # with open('result/mnist/mnist.csv', mode='a') as rs_file:
+        #     rs = csv.writer(rs_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        #     rs.writerow([str(droprate),str(lr),str(SIVI_layer_size),str(SIVI_input_dim),str(train_sample),str(test_sample),str(test_w_sample),str(local_rep),str(prior_gmm),str(nepochs),str(sbatch),str(train_acc),str(valid_acc),str(test_acc)])
