@@ -70,14 +70,17 @@ class BayesianLinear(nn.Module):
         noise_std, mu_std = math.sqrt(noise_var), math.sqrt(mu_var)
         bound = math.sqrt(3.0) * mu_std
         rho_init = np.log(np.exp(noise_std) - 1)
-
+        
         nn.init.uniform_(self.weight_mu, -bound, bound)
         nn.init.uniform_(self.bias_mu, -bound, bound)
-        #nn.init.uniform_(self.bias_mu, -0, 0)
+        # nn.init.uniform_(self.weight_mu, -0.2, 0.2)
+        # nn.init.uniform_(self.bias_mu, -0.2, 0.2)
 
         self.weight_rho = nn.Parameter(torch.Tensor(out_features, in_features).uniform_(rho_init, rho_init))
         self.bias_rho = nn.Parameter(torch.Tensor(out_features).uniform_(rho_init, rho_init))
-        
+        # self.weight_rho = nn.Parameter(torch.Tensor(out_features, in_features).uniform_(-5, -4))
+        # self.bias_rho = nn.Parameter(torch.Tensor(out_features).uniform_(-5, -4))
+
         self.weight = Gaussian(self.weight_mu, self.weight_rho)
         self.bias = Gaussian(self.bias_mu, self.bias_rho)
 
@@ -417,12 +420,13 @@ class SIVI_bayes_layer_test(nn.Module):
         sig = torch.log1p(torch.exp(self.weight_rho))
         N, M = sig.shape
 
-        semi_input = torch.empty((0,))
+        semi_input = []
         sigma = torch.cat([sig]*no_sample,0)
         weight = torch.cat([self.weight_n_bias]*no_sample,0)
 
         for i in range(no_sample-1):
-            semi_input = torch.cat([semi_input,self.semi_input.sample()],0)
+            semi_input.append(self.semi_input.sample())
+        semi_input = torch.cat(semi_input,0)
 
         #weight_mu = self.SIVI(semi_input)
         # weight_mu = torch.cat([self.weight_mu,weight_mu],0)

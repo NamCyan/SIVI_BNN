@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from utils import *
 
 class Net(torch.nn.Module):
-    def __init__(self, inputdim, layer_size, outputdim, prior_gmm=True, SIVI_by_col= False, SIVI_input_dim=10, SIVI_layer_size=20, semi_unit= False, droprate= None, local_rep= True, ratio=0.5):
+    def __init__(self, inputdim, layer_size, outputdim, prior_gmm=True, SIVI_by_col= False, SIVI_input_dim=10, SIVI_layer_size=20, re_wKL = 1, semi_unit= False, droprate= None, local_rep= True, ratio=0.5):
         super(Net, self).__init__()
         ncha, input_size, _ = inputdim
         hid1, hid2 = layer_size
@@ -13,7 +13,8 @@ class Net(torch.nn.Module):
         self.local_rep = local_rep
         self.SIVI_by_col = SIVI_by_col
         self.prior_gmm = prior_gmm
-        
+        self.re_wKL = re_wKL
+
         self.fc1 = SIVI_bayes_layer(input_size*input_size, hid1, prior_gmm= prior_gmm,SIVI_by_col=SIVI_by_col, SIVI_input_dim=SIVI_input_dim, SIVI_layer_size=SIVI_layer_size, semi_unit= semi_unit, droprate= droprate,ratio=ratio)
         self.fc2 = SIVI_bayes_layer(hid1, hid2, prior_gmm=prior_gmm,SIVI_by_col=SIVI_by_col, SIVI_input_dim=SIVI_input_dim, SIVI_layer_size=SIVI_layer_size, semi_unit= semi_unit, droprate= droprate,ratio=ratio)
         self.fc3 = SIVI_bayes_layer(hid2, outputdim, prior_gmm=prior_gmm, SIVI_by_col=SIVI_by_col, SIVI_input_dim=SIVI_input_dim, SIVI_layer_size=SIVI_layer_size, semi_unit= semi_unit, droprate= droprate,ratio=ratio)
@@ -26,14 +27,20 @@ class Net(torch.nn.Module):
         y = self.fc3(h, self.local_rep, train= train)
         return y
 
-    def loss_forward(self, x,y, N_M, no_sample, re_wKL=1):       
+    def loss_forward(self, x,y, N_M, no_sample, mb_index):
+        re_wKL = self.re_wKL       
         output = F.log_softmax(self.forward(x), dim=1)
-        
+  
         log_likelihood = F.nll_loss(output, y, reduction='sum')
         log_pw = self.get_log_pw(no_sample)
         log_qw = self.get_log_qw(no_sample)
+      
+        if re_wKL == "adaptive":
+            re_wKL = np.power(2.0,N_M-mb_index) / (np.power(2.0,N_M)-1)
+        else:
+            re_wKL = re_wKL/N_M
 
-        loss =  log_likelihood + re_wKL*(log_qw - log_pw)/N_M
+        loss =  log_likelihood + re_wKL*(log_qw - log_pw)
         return loss
 
     def get_log_pw(self, no_sample):

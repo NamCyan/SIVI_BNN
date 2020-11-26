@@ -125,9 +125,13 @@ class Appr(object):
 
             # Forward current model
             mini_batch_size = len(targets)
-            N_M = len(r) / mini_batch_size
+      
+            if len(r) % mini_batch_size == 0:
+                number_of_batchs = len(r) // mini_batch_size
+            else:
+                number_of_batchs = len(r) // mini_batch_size + 1
 
-            loss = self.model.loss_forward(images, targets, N_M, self.train_sample)
+            loss = self.model.loss_forward(images, targets, number_of_batchs, self.train_sample, i+1)
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -158,9 +162,12 @@ class Appr(object):
 
                 # Forward
                 mini_batch_size = len(targets)
-                N_M = len(r) / mini_batch_size
-                             
-                loss = self.model.loss_forward(images, targets, N_M, self.train_sample)
+                if len(r) % mini_batch_size == 0:
+                    number_of_batchs = len(r) // mini_batch_size
+                else:
+                    number_of_batchs = len(r) // mini_batch_size + 1
+                    
+                loss = self.model.loss_forward(images, targets, number_of_batchs, self.train_sample, i+1)
                 output = self.model.pred_sample(images, targets, self.test_sample, self.w_sample, test = test)
                 _, pred = output.max(1)
                 hits = (pred == targets).float()

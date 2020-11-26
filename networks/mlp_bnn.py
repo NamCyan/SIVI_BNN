@@ -32,7 +32,8 @@ class Net(torch.nn.Module):
             no_sample = 1
             
         for i in range(no_sample):
-            output = F.log_softmax(self.forward(x), dim= 1)       
+            output = F.log_softmax(self.forward(x), dim= 1)   
+            # print(F.softmax(self.forward(x)))    
             total_qw += self.get_qw()
             total_pw += self.get_pw()
             out += output
@@ -40,9 +41,9 @@ class Net(torch.nn.Module):
         total_qw = total_qw/no_sample
         total_pw = total_pw/no_sample
         total_log_likelihood = F.nll_loss(out/no_sample, y, reduction='sum')
+        #print(total_log_likelihood)
         if re_wKL == "adaptive":
             re_wKL = np.power(2.0,N_M-mb_index) / (np.power(2.0,N_M)-1)
-            #print(re_wKL)
         else:
             re_wKL = re_wKL/N_M
 

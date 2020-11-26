@@ -7,7 +7,7 @@ class Net(torch.nn.Module):
     def __init__(self, inputdim, layer_size, outputdim, droprate = None):
         super(Net, self).__init__()
         self.droprate =droprate
-        
+        self.inputdim = inputdim
         if self.droprate is not None:
             self.drop = torch.nn.Dropout(droprate)
         hid1, hid2 = layer_size
@@ -28,4 +28,12 @@ class Net(torch.nn.Module):
             h=self.relu(self.fc2(h))
         mu = self.fc3(h)
         return mu
+    
+    def weight_init(self):
+        for (_,layer) in self.named_children():
+            #self.xavier_init(layer)
+            if isinstance(layer, torch.nn.Linear):
+                with torch.no_grad():
+                    layer.weight= torch.nn.Parameter(torch.eye(self.inputdim))
+                    layer.bias= torch.nn.Parameter(torch.Tensor(layer.bias * -3.143/-0.0137))
 
